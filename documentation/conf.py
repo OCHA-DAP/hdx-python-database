@@ -317,7 +317,7 @@ man_pages = [
 texinfo_documents = [
     (master_doc, 'HDXPythonDatabase', 'HDX Python Database Documentation',
      author, 'HDXPythonDatabase',
-     'The HDX Python Database Library provides country mappings including ISO 2/3 (ISO 3166) and regions',
+     'The HDX Python Database Library provides utilities for connecting to databases in a standardised way',
      'Miscellaneous'),
 ]
 

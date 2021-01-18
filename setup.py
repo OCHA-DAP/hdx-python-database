@@ -23,14 +23,14 @@ classifiers = [
 PublishCommand.version = load_file_to_str(join('src', 'hdx', 'database', 'version.txt'), strip=True)
 
 setup(
-    name='hdx-python-country',
-    description='HDX Python country mapping utilities',
+    name='hdx-python-database',
+    description='HDX Python database utilities',
     license='MIT',
-    url='https://github.com/OCHA-DAP/hdx-python-country',
+    url='https://github.com/OCHA-DAP/hdx-python-database',
     version=PublishCommand.version,
     author='Michael Rans',
     author_email='rans@email.com',
-    keywords=['HDX', 'location', 'country code', 'country', 'iso 3166', 'iso2', 'iso3', 'region'],
+    keywords=['HDX', 'database', 'postgresql'],
     long_description=load_file_to_str('README.md'),
     long_description_content_type='text/markdown',
     packages=find_packages(where='src'),
