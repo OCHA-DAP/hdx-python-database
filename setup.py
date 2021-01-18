@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-PublishCommand.version = load_file_to_str(join('src', 'hdx', 'location', 'version.txt'), strip=True)
+PublishCommand.version = load_file_to_str(join('src', 'hdx', 'database', 'version.txt'), strip=True)
 
 setup(
     name='hdx-python-country',
