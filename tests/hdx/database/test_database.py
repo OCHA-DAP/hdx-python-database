@@ -9,7 +9,7 @@ import psycopg2
 import pytest
 from sshtunnel import SSHTunnelForwarder
 
-from hdx.utilities.database import Database
+from hdx.database import Database
 
 
 class TestDatabase:

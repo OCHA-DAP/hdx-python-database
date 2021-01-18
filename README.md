@@ -20,7 +20,7 @@ The code for the library is here: <https://github.com/ocha-dap/hdx-python-databa
 Your SQLAlchemy database tables must inherit from Base in
 hdx.utilities.database eg. :
 
-    from hdx.utilities.database import Base
+    from hdx.database import Base
     class MyTable(Base):
         my_col = Column(Integer, ForeignKey(MyTable2.col2), primary_key=True)
 
@@ -29,6 +29,7 @@ Examples:
     # Get SQLAlchemy session object given database parameters and
     # if needed SSH parameters. If database is PostgreSQL, will poll
     # till it is up.
+    from hdx.database import Database
     with Database(database='db', host='1.2.3.4', username='user', password='pass',
                   driver='driver', ssh_host='5.6.7.8', ssh_port=2222,
                   ssh_username='sshuser', ssh_private_key='path_to_key') as session:
