@@ -6,7 +6,9 @@ from setuptools import setup, find_packages
 
 from hdx.utilities.loader import load_file_to_str
 
-requirements = ['hdx-python-utilities>=2.5.5']
+requirements = ['hdx-python-utilities>=2.5.5',
+                'psycopg2-binary',
+                'sshtunnel']
 
 classifiers = [
     "Development Status :: 5 - Production/Stable",
