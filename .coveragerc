@@ -8,7 +8,7 @@ omit =
     */venv/*
     */site-packages/*
     */tests/*
-    *__init__*
+    hdx/__init__*
 
 exclude_lines =
     # Have to re-enable the standard pragma
