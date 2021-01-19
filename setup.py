@@ -9,7 +9,7 @@ from hdx.utilities.loader import load_file_to_str
 requirements = ['hdx-python-utilities>=2.5.5',
                 'sshtunnel']
 
-extras_requirements = {'postgres': 'psycopg2-binary'}
+extras_requirements = {'postgres': ['psycopg2-binary']}
 
 classifiers = [
     "Development Status :: 5 - Production/Stable",
