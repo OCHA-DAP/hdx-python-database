@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 """Database utilities"""
 import logging
-import time
 from typing import Dict, Any, Optional, Union
 
-import psycopg2
 from six.moves.urllib.parse import urlsplit
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declared_attr, declarative_base
@@ -12,6 +10,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 from sqlalchemy.pool import NullPool
 from sshtunnel import SSHTunnelForwarder
+
+from hdx.database.postgres import wait_for_postgres
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class Database(object):
         else:
             self.server = None
         if driver == 'postgres':
-            Database.wait_for_postgres(database, host, port, username, password)
+            wait_for_postgres(database, host, port, username, password)
         db_url = self.get_sqlalchemy_url(database, host, port, username, password, driver=driver)
         self.session = self.get_session(db_url)
 
@@ -141,38 +141,3 @@ class Database(object):
         if database:
             strings.append('/%s' % database)
         return ''.join(strings)
-
-    @staticmethod
-    def wait_for_postgres(database, host, port, username, password):
-        # type: (Optional[str], Optional[str], Union[int, str, None], Optional[str], Optional[str]) -> None
-        """Waits for PostgreSQL database to be up
-
-        Args:
-            database (Optional[str]): Database name
-            host (Optional[str]): Host where database is located
-            port (Union[int, str, None]): Database port
-            username (Optional[str]): Username to log into database
-            password (Optional[str]): Password to log into database
-
-        Returns:
-            None
-        """
-        connecting_string = 'Checking for PostgreSQL...'
-        if port is not None:
-            port = int(port)
-        while True:
-            try:
-                logger.info(connecting_string)
-                connection = psycopg2.connect(
-                    database=database,
-                    host=host,
-                    port=port,
-                    user=username,
-                    password=password,
-                    connect_timeout=3
-                )
-                connection.close()
-                logger.info('PostgreSQL is running!')
-                break
-            except psycopg2.OperationalError:
-                time.sleep(1)

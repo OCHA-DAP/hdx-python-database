@@ -7,8 +7,9 @@ from setuptools import setup, find_packages
 from hdx.utilities.loader import load_file_to_str
 
 requirements = ['hdx-python-utilities>=2.5.5',
-                'psycopg2-binary',
                 'sshtunnel']
+
+extras_requirements = {'postgres': 'psycopg2-binary'}
 
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -43,5 +44,6 @@ setup(
     zip_safe=True,
     classifiers=classifiers,
     install_requires=requirements,
+    extras_requires=extras_requirements,
     cmdclass={'clean': CleanCommand, 'package': PackageCommand, 'publish': PublishCommand},
 )

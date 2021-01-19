@@ -10,6 +10,7 @@ import pytest
 from sshtunnel import SSHTunnelForwarder
 
 from hdx.database import Database
+from hdx.database.postgres import wait_for_postgres
 
 
 class TestDatabase:
@@ -85,7 +86,7 @@ class TestDatabase:
 
     def test_wait_for_postgres(self, mock_psycopg2):
         TestDatabase.connected = False
-        Database.wait_for_postgres('mydatabase', 'myserver', 5432, 'myuser', 'mypass')
+        wait_for_postgres('mydatabase', 'myserver', 5432, 'myuser', 'mypass')
         assert TestDatabase.connected is True
 
     def test_get_session(self, nodatabase):
