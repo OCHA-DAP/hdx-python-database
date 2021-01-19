@@ -2,6 +2,7 @@
 """Postgres specific utilities"""
 import logging
 import time
+from typing import Optional, Union
 
 try:
     import psycopg2
