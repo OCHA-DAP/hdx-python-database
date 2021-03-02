@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 from hdx.utilities.loader import load_file_to_str
 
-requirements = ['hdx-python-utilities>=2.5.5',
+requirements = ['hdx-python-utilities>=2.6.1',
                 'sshtunnel']
 
 extras_requirements = {'postgres': ['psycopg2-binary']}
