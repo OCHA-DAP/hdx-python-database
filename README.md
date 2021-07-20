@@ -13,6 +13,9 @@ humanitarian related data, please upload your datasets to HDX.
   - [Usage](#usage)
   - [Examples](#examples)
 
+## Breaking changes
+Versions from 1.0.6 no longer support Python 2.7. 
+
 ## Usage
 
 The library has detailed API documentation which can be found here: <http://ocha-dap.github.io/hdx-python-database/>. 
