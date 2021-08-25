@@ -1,4 +1,4 @@
-[![Build Status](https://github.com/OCHA-DAP/hdx-python-database/workflows/build/badge.svg)](https://github.com/OCHA-DAP/hdx-python-database/actions?query=workflow%3Abuild) [![Coverage Status](https://coveralls.io/repos/github/OCHA-DAP/hdx-python-database/badge.svg?branch=master&ts=1)](https://coveralls.io/github/OCHA-DAP/hdx-python-database?branch=master)
+[![Build Status](https://github.com/OCHA-DAP/hdx-python-database/workflows/build/badge.svg)](https://github.com/OCHA-DAP/hdx-python-database/actions?query=workflow%3Abuild) [![Coverage Status](https://coveralls.io/repos/github/OCHA-DAP/hdx-python-database/badge.svg?branch=main&ts=1)](https://coveralls.io/github/OCHA-DAP/hdx-python-database?branch=main)
 
 The HDX Python Database Library provides utilities for connecting to databases in a standardised way including
 through an ssh tunnel if needed. It is built on top of SQLAlchemy and simplifies its setup. Additional postgres
