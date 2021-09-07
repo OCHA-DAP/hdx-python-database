@@ -14,6 +14,8 @@ humanitarian related data, please upload your datasets to HDX.
   - [Examples](#examples)
 
 ## Breaking changes
+Versions from 1.0.8 support Python 3.6 and later.
+
 Versions from 1.0.6 no longer support Python 2.7. 
 
 ## Usage
