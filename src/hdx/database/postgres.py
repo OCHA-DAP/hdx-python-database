@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Postgres specific utilities"""
 import logging
 import time
@@ -9,13 +8,21 @@ try:
 except ImportError:
     # dependency missing, issue a warning
     import warnings
-    warnings.warn('psycopg2 not found! Please install hdx-python-database[postgres] to enable.')
+
+    warnings.warn(
+        "psycopg2 not found! Please install hdx-python-database[postgres] to enable."
+    )
 
 logger = logging.getLogger(__name__)
 
 
-def wait_for_postgres(database, host, port, username, password):
-    # type: (Optional[str], Optional[str], Union[int, str, None], Optional[str], Optional[str]) -> None
+def wait_for_postgres(
+    database: Optional[str],
+    host: Optional[str],
+    port: Union[int, str, None],
+    username: Optional[str],
+    password: Optional[str],
+) -> None:
     """Waits for PostgreSQL database to be up
 
     Args:
@@ -28,7 +35,7 @@ def wait_for_postgres(database, host, port, username, password):
     Returns:
         None
     """
-    connecting_string = 'Checking for PostgreSQL...'
+    connecting_string = "Checking for PostgreSQL..."
     if port is not None:
         port = int(port)
     while True:
@@ -40,10 +47,10 @@ def wait_for_postgres(database, host, port, username, password):
                 port=port,
                 user=username,
                 password=password,
-                connect_timeout=3
+                connect_timeout=3,
             )
             connection.close()
-            logger.info('PostgreSQL is running!')
+            logger.info("PostgreSQL is running!")
             break
         except psycopg2.OperationalError:
             time.sleep(1)
