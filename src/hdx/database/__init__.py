@@ -1,8 +1,8 @@
 """Database utilities"""
 import logging
 from typing import Any, Dict, Optional, Union
+from urllib.parse import urlsplit
 
-from six.moves.urllib.parse import urlsplit
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import sessionmaker
