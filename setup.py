@@ -2,9 +2,9 @@ from os.path import join
 
 from hdx.utilities import CleanCommand, PackageCommand, PublishCommand
 from hdx.utilities.loader import load_file_to_str
-from setuptools import find_packages, setup
+from setuptools import find_namespace_packages, setup
 
-requirements = ["hdx-python-utilities>=2.6.9", "sshtunnel"]
+requirements = ["hdx-python-utilities>=3.0.2", "sshtunnel"]
 
 extras_requirements = {"postgres": ["psycopg2-binary"]}
 
@@ -34,7 +34,7 @@ setup(
     keywords=["HDX", "database", "postgresql"],
     long_description=load_file_to_str("README.md"),
     long_description_content_type="text/markdown",
-    packages=find_packages(where="src"),
+    packages=find_namespace_packages(where="src"),
     package_dir={"": "src"},
     include_package_data=True,
     setup_requires=["pytest-runner"],
