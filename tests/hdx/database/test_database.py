@@ -83,7 +83,9 @@ class TestDatabase:
         monkeypatch.setattr(Database, "get_session", get_session)
 
     def test_get_params_from_sqlalchemy_url(self):
-        result = Database.get_params_from_sqlalchemy_url(TestDatabase.sqlalchemy_url)
+        result = Database.get_params_from_sqlalchemy_url(
+            TestDatabase.sqlalchemy_url
+        )
         assert result == TestDatabase.params
 
     def test_get_sqlalchemy_url(self):
@@ -102,14 +104,18 @@ class TestDatabase:
             assert str(dbsession.bind.engine.url) == nodatabase
 
     def test_get_session_ssh(self, mock_psycopg2, mock_SSHTunnelForwarder):
-        with Database(ssh_host="mysshhost", **TestDatabase.params) as dbsession:
+        with Database(
+            ssh_host="mysshhost", **TestDatabase.params
+        ) as dbsession:
             assert (
                 str(dbsession.bind.engine.url)
                 == "postgres://myuser:mypass@0.0.0.0:12345/mydatabase"
             )
         params = copy.deepcopy(TestDatabase.params)
         del params["password"]
-        with Database(ssh_host="mysshhost", ssh_port=25, **params) as dbsession:
+        with Database(
+            ssh_host="mysshhost", ssh_port=25, **params
+        ) as dbsession:
             assert (
                 str(dbsession.bind.engine.url)
                 == "postgres://myuser@0.0.0.0:12345/mydatabase"
