@@ -21,6 +21,8 @@ Versions from 1.0.6 no longer support Python 2.7.
 
 # Description of Utilities
 
+## Database
+
 Your SQLAlchemy database tables must inherit from Base in
 hdx.utilities.database eg. :
 
@@ -28,7 +30,8 @@ hdx.utilities.database eg. :
     class MyTable(Base):
         my_col = Column(Integer, ForeignKey(MyTable2.col2), primary_key=True)
 
-Examples:
+Then a connection can be made to a database as follows including through an SSH
+tunnel:
 
     # Get SQLAlchemy session object given database parameters and
     # if needed SSH parameters. If database is PostgreSQL, will poll
@@ -45,7 +48,12 @@ Examples:
     # Build SQLAlchemy url from dictionary of parameters
     result = Database.get_sqlalchemy_url(**TestDatabase.params)
 
-    # Wait util PostgreSQL is up
+## PostgreSQL specific
+
+There is a PostgreSQL specific call that only returns when the PostgreSQL database
+is available:
+
+    # Wait until PostgreSQL is up
     # Library should be installed with hdx-python-database[postgres]
     wait_for_postgres('mydatabase', 'myserver', 5432, 'myuser', 'mypass')
 

@@ -77,7 +77,15 @@ output_directory = "docs/build"
 
     [[tool.pydoc-markdown.renderer.pages]]
     title = "API Documentation"
-    contents = ["hdx.database.*"]
+
+        [[tool.pydoc-markdown.renderer.pages.children]]
+        title = "Database"
+        contents = ["hdx.database.Database"]
+
+        [[tool.pydoc-markdown.renderer.pages.children]]
+        title = "PostgreSQL specific"
+        contents = ["hdx.database.postgres.*"]
+
 
 
 [tool.tox]
