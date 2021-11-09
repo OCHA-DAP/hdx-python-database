@@ -48,6 +48,10 @@ tunnel:
     # Build SQLAlchemy url from dictionary of parameters
     result = Database.get_sqlalchemy_url(**TestDatabase.params)
 
+The Base and Database classes should be imported from hdx.database but their 
+implementations are currently under hdx.database.database and that is where they
+are shown in the API documentation.
+
 ## PostgreSQL specific
 
 There is a PostgreSQL specific call that only returns when the PostgreSQL database

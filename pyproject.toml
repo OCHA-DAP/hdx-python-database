@@ -80,7 +80,7 @@ output_directory = "docs/build"
 
         [[tool.pydoc-markdown.renderer.pages.children]]
         title = "Database"
-        contents = ["hdx.database.Database"]
+        contents = ["hdx.database.database.*"]
 
         [[tool.pydoc-markdown.renderer.pages.children]]
         title = "PostgreSQL specific"
