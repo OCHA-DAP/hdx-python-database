@@ -10,7 +10,7 @@ humanitarian related data, please upload your datasets to HDX.
 
 The code for the library is [here](https://github.com/OCHA-DAP/hdx-python-database).
 The library has detailed API documentation which can be found in the menu on the left and starts 
-[here](https://hdx-python-database.readthedocs.io/en/latest/api-documentation/downloading-files/). 
+[here](https://hdx-python-database.readthedocs.io/en/latest/api-documentation/database/). 
 
 Additional postgres functionality is available if this library is installed with extra "postgres":
 
