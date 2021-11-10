@@ -64,7 +64,7 @@ output_directory = "docs/build"
     [tool.pydoc-markdown.renderer.mkdocs_config]
     site_name = "HDX Python Database"
     theme = "readthedocs"
-    repo_url = "https://github.com/OCHA-DAP/hdx-python-country"
+    repo_url = "https://github.com/OCHA-DAP/hdx-python-database"
 
     [tool.pydoc-markdown.renderer.markdown.source_linker]
     type = "github"
