@@ -1,6 +1,6 @@
 # Summary
 
-The HDX Python Database Library provides utilities for connecting to databases in a standardised way including
+The HDX Python Database Library provides utilities for connecting to databases in a standard way including
 through an ssh tunnel if needed. It is built on top of SQLAlchemy and simplifies its setup.
 
 # Information
