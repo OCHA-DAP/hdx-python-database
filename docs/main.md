@@ -39,9 +39,9 @@ tunnel:
     # if needed SSH parameters. If database is PostgreSQL, will poll
     # till it is up.
     from hdx.database import Database
-    with Database(database='db', host='1.2.3.4', username='user', password='pass',
-                  driver='driver', ssh_host='5.6.7.8', ssh_port=2222,
-                  ssh_username='sshuser', ssh_private_key='path_to_key') as session:
+    with Database(database="db", host="1.2.3.4", username="user", password="pass",
+                  driver="driver", ssh_host="5.6.7.8", ssh_port=2222,
+                  ssh_username="sshuser", ssh_private_key="path_to_key") as session:
         session.query(...)
 
     # Extract dictionary of parameters from SQLAlchemy url
@@ -57,5 +57,5 @@ is available:
 
     # Wait until PostgreSQL is up
     # Library should be installed with hdx-python-database[postgres]
-    wait_for_postgres('mydatabase', 'myserver', 5432, 'myuser', 'mypass')
+    wait_for_postgres("mydatabase", "myserver", 5432, "myuser", "mypass")
 
