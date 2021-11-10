@@ -1,11 +1,9 @@
-# Information
+# Summary
 
 The HDX Python Database Library provides utilities for connecting to databases in a standardised way including
-through an ssh tunnel if needed. It is built on top of SQLAlchemy and simplifies its setup. Additional postgres
-functionality is available if this library is installed with extra "postgres":
+through an ssh tunnel if needed. It is built on top of SQLAlchemy and simplifies its setup.
 
-    pip install hdx-python-database[postgres]
-
+# Information
 
 This library is part of the [Humanitarian Data Exchange](https://data.humdata.org/) (HDX) project. If you have 
 humanitarian related data, please upload your datasets to HDX.
@@ -13,6 +11,10 @@ humanitarian related data, please upload your datasets to HDX.
 The code for the library is [here](https://github.com/OCHA-DAP/hdx-python-database).
 The library has detailed API documentation which can be found in the menu on the left and starts 
 [here](https://hdx-python-database.readthedocs.io/en/latest/api-documentation/downloading-files/). 
+
+Additional postgres functionality is available if this library is installed with extra "postgres":
+
+    pip install hdx-python-database[postgres]
 
 ## Breaking changes
 Versions from 1.0.8 support Python 3.6 and later.
