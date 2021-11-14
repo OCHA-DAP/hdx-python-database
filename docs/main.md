@@ -17,6 +17,7 @@ Additional postgres functionality is available if this library is installed with
     pip install hdx-python-database[postgres]
 
 ## Breaking changes
+
 Versions from 1.0.8 support Python 3.6 and later.
 
 Versions from 1.0.6 no longer support Python 2.7. 
