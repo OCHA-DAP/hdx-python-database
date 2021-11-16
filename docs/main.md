@@ -12,11 +12,14 @@ The code for the library is [here](https://github.com/OCHA-DAP/hdx-python-databa
 The library has detailed API documentation which can be found in the menu on the left and starts 
 [here](https://hdx-python-database.readthedocs.io/en/latest/api-documentation/database/). 
 
-Additional postgres functionality is available if this library is installed with extra "postgres":
+Additional postgresql functionality is available if this library is installed with extra "postgresql":
 
-    pip install hdx-python-database[postgres]
+    pip install hdx-python-database[postgresql]
 
 ## Breaking changes
+
+From 1.1.2, the postgres module is renamed postgresql and function wait_for_postgres
+is renamed wait_for_postgresql.
 
 Versions from 1.0.8 support Python 3.6 and later.
 
@@ -57,6 +60,6 @@ There is a PostgreSQL specific call that only returns when the PostgreSQL databa
 is available:
 
     # Wait until PostgreSQL is up
-    # Library should be installed with hdx-python-database[postgres]
-    wait_for_postgres("mydatabase", "myserver", 5432, "myuser", "mypass")
+    # Library should be installed with hdx-python-database[postgresql]
+    wait_for_postgresql("mydatabase", "myserver", 5432, "myuser", "mypass")
 

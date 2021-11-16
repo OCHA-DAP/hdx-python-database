@@ -1,4 +1,4 @@
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 """Database utilities"""
 import logging
@@ -12,7 +12,7 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.pool import NullPool
 from sshtunnel import SSHTunnelForwarder
 
-from hdx.database.postgres import wait_for_postgres
+from hdx.database.postgresql import wait_for_postgresql
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class Database:
         port (Union[int, str, None]): Database port
         username (Optional[str]): Username to log into database
         password (Optional[str]): Password to log into database
-        driver (str): Database driver. Defaults to 'postgres'.
+        driver (str): Database driver. Defaults to "postgresql".
         **kwargs: See below
         ssh_host (str): SSH host (the server to connect to)
         ssh_port (int): SSH port. Defaults to 22.
@@ -53,7 +53,7 @@ class Database:
         port: Union[int, str, None] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-        driver: str = "postgres",
+        driver: str = "postgresql",
         **kwargs: Any,
     ) -> None:
         if port is not None:
@@ -77,8 +77,8 @@ class Database:
             port = self.server.local_bind_port
         else:
             self.server = None
-        if driver == "postgres":
-            wait_for_postgres(database, host, port, username, password)
+        if driver == "postgresql":
+            wait_for_postgresql(database, host, port, username, password)
         db_url = self.get_sqlalchemy_url(
             database, host, port, username, password, driver=driver
         )
@@ -135,7 +135,7 @@ class Database:
         port: Union[int, str, None] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-        driver: str = "postgres",
+        driver: str = "postgresql",
     ) -> str:
         """Gets SQLAlchemy url from database connection parameters
 
@@ -145,7 +145,7 @@ class Database:
             port (Union[int, str, None]): Database port
             username (Optional[str]): Username to log into database
             password (Optional[str]): Password to log into database
-            driver (str): Database driver. Defaults to 'postgres'.
+            driver (str): Database driver. Defaults to "postgresql".
 
         Returns:
             db_url (str): SQLAlchemy url

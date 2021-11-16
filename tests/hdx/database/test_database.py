@@ -9,7 +9,7 @@ import pytest
 from sshtunnel import SSHTunnelForwarder
 
 from hdx.database import Database
-from hdx.database.postgres import wait_for_postgres
+from hdx.database.postgresql import wait_for_postgresql
 
 
 class TestDatabase:
@@ -23,9 +23,9 @@ class TestDatabase:
         "port": 1234,
         "username": "myuser",
         "password": "mypass",
-        "driver": "postgres",
+        "driver": "postgresql",
     }
-    sqlalchemy_url = "postgres://myuser:mypass@myserver:1234/mydatabase"
+    sqlalchemy_url = "postgresql://myuser:mypass@myserver:1234/mydatabase"
 
     @pytest.fixture(scope="function")
     def nodatabase(self):
@@ -92,9 +92,9 @@ class TestDatabase:
         result = Database.get_sqlalchemy_url(**TestDatabase.params)
         assert result == TestDatabase.sqlalchemy_url
 
-    def test_wait_for_postgres(self, mock_psycopg2):
+    def test_wait_for_postgresql(self, mock_psycopg2):
         TestDatabase.connected = False
-        wait_for_postgres("mydatabase", "myserver", 5432, "myuser", "mypass")
+        wait_for_postgresql("mydatabase", "myserver", 5432, "myuser", "mypass")
         assert TestDatabase.connected is True
 
     def test_get_session(self, nodatabase):
@@ -109,7 +109,7 @@ class TestDatabase:
         ) as dbsession:
             assert (
                 str(dbsession.bind.engine.url)
-                == "postgres://myuser:mypass@0.0.0.0:12345/mydatabase"
+                == "postgresql://myuser:mypass@0.0.0.0:12345/mydatabase"
             )
         params = copy.deepcopy(TestDatabase.params)
         del params["password"]
@@ -118,5 +118,5 @@ class TestDatabase:
         ) as dbsession:
             assert (
                 str(dbsession.bind.engine.url)
-                == "postgres://myuser@0.0.0.0:12345/mydatabase"
+                == "postgresql://myuser@0.0.0.0:12345/mydatabase"
             )

@@ -1,4 +1,4 @@
-"""Postgres specific utilities"""
+"""PostgreSQL specific utilities"""
 import logging
 import time
 from typing import Optional, Union
@@ -10,13 +10,13 @@ except ImportError:
     import warnings
 
     warnings.warn(
-        "psycopg2 not found! Please install hdx-python-database[postgres] to enable."
+        "psycopg2 not found! Please install hdx-python-database[postgresql] to enable."
     )
 
 logger = logging.getLogger(__name__)
 
 
-def wait_for_postgres(
+def wait_for_postgresql(
     database: Optional[str],
     host: Optional[str],
     port: Union[int, str, None],
