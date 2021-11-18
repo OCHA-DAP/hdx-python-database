@@ -7,8 +7,7 @@ from urllib.parse import urlsplit
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import Session
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
 from sshtunnel import SSHTunnelForwarder
 
@@ -101,7 +100,7 @@ class Database:
             db_url (str): SQLAlchemy url
 
         Returns:
-            sqlalchemy.orm.session.Session: SQLAlchemy session
+            sqlalchemy.orm.Session: SQLAlchemy session
         """
         engine = create_engine(db_url, poolclass=NullPool, echo=False)
         Session = sessionmaker(bind=engine)
