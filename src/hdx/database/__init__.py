@@ -1,4 +1,4 @@
-__version__ = "1.1.3"
+from ._version import version as __version__  # noqa: F401
 
 """Database utilities"""
 import logging
