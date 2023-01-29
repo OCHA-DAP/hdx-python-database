@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class HDXBase:
-    @declared_attr
+    @declared_attr.directive
     def __tablename__(cls):
         return f"{cls.__name__.lower()}s"
 
@@ -102,7 +102,9 @@ class Database:
         Returns:
             sqlalchemy.orm.Session: SQLAlchemy session
         """
-        engine = create_engine(db_url, poolclass=NullPool, echo=False)
+        engine = create_engine(
+            db_url, poolclass=NullPool, echo=False, future=True
+        )
         Session = sessionmaker(bind=engine)
         Base.metadata.create_all(engine)
         return Session()
