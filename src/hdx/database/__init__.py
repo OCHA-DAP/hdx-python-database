@@ -102,9 +102,7 @@ class Database:
         Returns:
             sqlalchemy.orm.Session: SQLAlchemy session
         """
-        engine = create_engine(
-            db_url, poolclass=NullPool, echo=False, future=True
-        )
+        engine = create_engine(db_url, poolclass=NullPool, echo=False)
         Session = sessionmaker(bind=engine)
         Base.metadata.create_all(engine)
         return Session()
