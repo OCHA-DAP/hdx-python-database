@@ -4,13 +4,14 @@ import time
 from typing import Optional, Union
 
 try:
-    import psycopg2
+    import psycopg
 except ImportError:
+    psycopg = None
     # dependency missing, issue a warning
     import warnings
 
     warnings.warn(
-        "psycopg2 not found! Please install hdx-python-database[postgresql] to enable."
+        "psycopg not found! Please install hdx-python-database[postgresql] to enable."
     )
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ def wait_for_postgresql(
     while True:
         try:
             logger.info(connecting_string)
-            connection = psycopg2.connect(
+            connection = psycopg.connect(
                 database=database,
                 host=host,
                 port=port,
@@ -52,5 +53,5 @@ def wait_for_postgresql(
             connection.close()
             logger.info("PostgreSQL is running!")
             break
-        except psycopg2.OperationalError:
+        except psycopg.OperationalError:
             time.sleep(1)

@@ -4,7 +4,7 @@ import os
 from collections import namedtuple
 from os.path import join
 
-import psycopg2
+import psycopg
 import pytest
 from sshtunnel import SSHTunnelForwarder
 
@@ -48,9 +48,9 @@ class TestDatabase:
                 return Connection()
             else:
                 TestDatabase.connected = True
-                raise psycopg2.OperationalError
+                raise psycopg.OperationalError
 
-        monkeypatch.setattr(psycopg2, "connect", connect)
+        monkeypatch.setattr(psycopg, "connect", connect)
 
     @pytest.fixture(scope="function")
     def mock_SSHTunnelForwarder(self, monkeypatch):
