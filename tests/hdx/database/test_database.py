@@ -25,7 +25,7 @@ class TestDatabase:
         "password": "mypass",
         "driver": "postgresql",
     }
-    sqlalchemy_url = "postgresql://myuser:mypass@myserver:1234/mydatabase"
+    connection_uri = "postgresql://myuser:mypass@myserver:1234/mydatabase"
 
     @pytest.fixture(scope="function")
     def nodatabase(self):
@@ -36,8 +36,8 @@ class TestDatabase:
         return f"sqlite:///{TestDatabase.dbpath}"
 
     @pytest.fixture(scope="function")
-    def mock_psycopg2(self, monkeypatch):
-        def connect(**kwargs):
+    def mock_psycopg(self, monkeypatch):
+        def connect(db_uri):
             if TestDatabase.connected:
 
                 class Connection:
@@ -82,19 +82,19 @@ class TestDatabase:
 
         monkeypatch.setattr(Database, "get_session", get_session)
 
-    def test_get_params_from_sqlalchemy_url(self):
-        result = Database.get_params_from_sqlalchemy_url(
-            TestDatabase.sqlalchemy_url
+    def test_get_params_from_connection_uri(self):
+        result = Database.get_params_from_connection_uri(
+            TestDatabase.connection_uri
         )
         assert result == TestDatabase.params
 
-    def test_get_sqlalchemy_url(self):
-        result = Database.get_sqlalchemy_url(**TestDatabase.params)
-        assert result == TestDatabase.sqlalchemy_url
+    def test_get_connection_uri(self):
+        result = Database.get_connection_uri(**TestDatabase.params)
+        assert result == TestDatabase.connection_uri
 
-    def test_wait_for_postgresql(self, mock_psycopg2):
+    def test_wait_for_postgresql(self, mock_psycopg):
         TestDatabase.connected = False
-        wait_for_postgresql("mydatabase", "myserver", 5432, "myuser", "mypass")
+        wait_for_postgresql(TestDatabase.connection_uri)
         assert TestDatabase.connected is True
 
     def test_get_session(self, nodatabase):
@@ -103,7 +103,7 @@ class TestDatabase:
         ) as dbsession:
             assert str(dbsession.bind.engine.url) == nodatabase
 
-    def test_get_session_ssh(self, mock_psycopg2, mock_SSHTunnelForwarder):
+    def test_get_session_ssh(self, mock_psycopg, mock_SSHTunnelForwarder):
         with Database(
             ssh_host="mysshhost", **TestDatabase.params
         ) as dbsession:

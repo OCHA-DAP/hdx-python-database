@@ -76,11 +76,11 @@ class Database:
             port = self.server.local_bind_port
         else:
             self.server = None
-        if driver == "postgresql":
-            wait_for_postgresql(database, host, port, username, password)
-        db_url = self.get_sqlalchemy_url(
+        db_url = self.get_connection_uri(
             database, host, port, username, password, driver=driver
         )
+        if driver == "postgresql":
+            wait_for_postgresql(db_url)
         self.session = self.get_session(db_url)
 
     def __enter__(self) -> Session:
@@ -92,32 +92,32 @@ class Database:
             self.server.stop()
 
     @staticmethod
-    def get_session(db_url: str) -> Session:
+    def get_session(db_uri: str) -> Session:
         """Gets SQLAlchemy session given url. Your tables must inherit
         from Base in hdx.utilities.database.
 
         Args:
-            db_url (str): SQLAlchemy url
+            db_uri (str): Connection URI
 
         Returns:
             sqlalchemy.orm.Session: SQLAlchemy session
         """
-        engine = create_engine(db_url, poolclass=NullPool, echo=False)
+        engine = create_engine(db_uri, poolclass=NullPool, echo=False)
         Session = sessionmaker(bind=engine)
         Base.metadata.create_all(engine)
         return Session()
 
     @staticmethod
-    def get_params_from_sqlalchemy_url(db_url: str) -> Dict[str, Any]:
-        """Gets PostgreSQL database connection parameters from SQLAlchemy url
+    def get_params_from_connection_uri(db_uri: str) -> Dict[str, Any]:
+        """Gets PostgreSQL database connection parameters from connection URI
 
         Args:
-            db_url (str): SQLAlchemy url
+            db_uri (str): Connection URI
 
         Returns:
             Dict[str,Any]: Dictionary of database connection parameters
         """
-        result = urlsplit(db_url)
+        result = urlsplit(db_uri)
         return {
             "database": result.path[1:],
             "host": result.hostname,
@@ -128,7 +128,7 @@ class Database:
         }
 
     @staticmethod
-    def get_sqlalchemy_url(
+    def get_connection_uri(
         database: Optional[str] = None,
         host: Optional[str] = None,
         port: Union[int, str, None] = None,
@@ -136,7 +136,7 @@ class Database:
         password: Optional[str] = None,
         driver: str = "postgresql",
     ) -> str:
-        """Gets SQLAlchemy url from database connection parameters
+        """Gets connection uri from database connection parameters
 
         Args:
             database (Optional[str]): Database name
@@ -147,7 +147,7 @@ class Database:
             driver (str): Database driver. Defaults to "postgresql".
 
         Returns:
-            db_url (str): SQLAlchemy url
+            str: Connection URI
         """
         strings = [f"{driver}://"]
         if username:

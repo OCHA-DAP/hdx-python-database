@@ -17,39 +17,20 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def wait_for_postgresql(
-    database: Optional[str],
-    host: Optional[str],
-    port: Union[int, str, None],
-    username: Optional[str],
-    password: Optional[str],
-) -> None:
+def wait_for_postgresql(db_uri: str) -> None:
     """Waits for PostgreSQL database to be up
 
     Args:
-        database (Optional[str]): Database name
-        host (Optional[str]): Host where database is located
-        port (Union[int, str, None]): Database port
-        username (Optional[str]): Username to log into database
-        password (Optional[str]): Password to log into database
+        db_uri (str): Connection URI
 
     Returns:
         None
     """
     connecting_string = "Checking for PostgreSQL..."
-    if port is not None:
-        port = int(port)
     while True:
         try:
             logger.info(connecting_string)
-            connection = psycopg.connect(
-                database=database,
-                host=host,
-                port=port,
-                user=username,
-                password=password,
-                connect_timeout=3,
-            )
+            connection = psycopg.connect(db_uri, connect_timeout=3)
             connection.close()
             logger.info("PostgreSQL is running!")
             break

@@ -17,6 +17,10 @@ Additional postgresql functionality is available if this library is installed wi
 
 ## Breaking changes
 
+From 1.2.1, wait_for_postgresql takes connection URI not database parameters, 
+get_params_from_sqlalchemy_url renamed to get_params_from_connection_uri,
+get_sqlalchemy_url renamed to get_connection_uri
+
 From 1.1.2, the postgres module is renamed postgresql and function wait_for_postgres
 is renamed wait_for_postgresql.
 
@@ -47,11 +51,11 @@ tunnel:
                   ssh_username="sshuser", ssh_private_key="path_to_key") as session:
         session.query(...)
 
-    # Extract dictionary of parameters from SQLAlchemy url
-    result = Database.get_params_from_sqlalchemy_url(TestDatabase.sqlalchemy_url)
+    # Extract dictionary of parameters from database connection URI
+    result = Database.get_params_from_connection_uri(TestDatabase.connection_uri)
 
-    # Build SQLAlchemy url from dictionary of parameters
-    result = Database.get_sqlalchemy_url(**TestDatabase.params)
+    # Build database connection URI from dictionary of parameters
+    result = Database.get_connection_uri(**TestDatabase.params)
 
 ## PostgreSQL specific
 
