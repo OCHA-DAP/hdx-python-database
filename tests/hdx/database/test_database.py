@@ -17,15 +17,56 @@ class TestDatabase:
     started = False
     stopped = False
     dbpath = join("tests", "test_database.db")
-    params = {
+    params_pg = {
         "database": "mydatabase",
         "host": "myserver",
         "port": 1234,
         "username": "myuser",
         "password": "mypass",
-        "driver": "postgresql",
+        "dialect": "postgresql",
+        "driver": "psycopg",
     }
-    connection_uri = "postgresql://myuser:mypass@myserver:1234/mydatabase"
+    connection_uri_pg = (
+        "postgresql+psycopg://myuser:mypass@myserver:1234/mydatabase"
+    )
+    params_pg_no_driver = {
+        "database": "mydatabase",
+        "host": "myserver",
+        "port": 1234,
+        "username": "myuser",
+        "password": "mypass",
+        "dialect": "postgresql",
+    }
+    params_pg_driver_none = {
+        "database": "mydatabase",
+        "host": "myserver",
+        "port": 1234,
+        "username": "myuser",
+        "password": "mypass",
+        "dialect": "postgresql",
+        "driver": None,
+    }
+    connection_uri_pg_no_driver = (
+        "postgresql://myuser:mypass@myserver:1234/mydatabase"
+    )
+    params_sq_no_driver = {
+        "database": "mydatabase",
+        "host": "myserver",
+        "port": 1234,
+        "username": "myuser",
+        "password": "mypass",
+        "dialect": "sqlite",
+    }
+    params_sq_driver_none = {
+        "database": "mydatabase",
+        "host": "myserver",
+        "port": 1234,
+        "username": "myuser",
+        "password": "mypass",
+        "dialect": "sqlite",
+        "driver": None,
+    }
+    connection_uri_sq = "sqlite://myuser:mypass@myserver:1234/mydatabase"
 
     @pytest.fixture(scope="function")
     def nodatabase(self):
@@ -84,39 +125,63 @@ class TestDatabase:
 
     def test_get_params_from_connection_uri(self):
         result = Database.get_params_from_connection_uri(
-            TestDatabase.connection_uri
+            TestDatabase.connection_uri_pg
         )
-        assert result == TestDatabase.params
+        assert result == TestDatabase.params_pg
+        result = Database.get_params_from_connection_uri(
+            TestDatabase.connection_uri_pg_no_driver
+        )
+        assert result == TestDatabase.params_pg_driver_none
+        result = Database.get_params_from_connection_uri(
+            TestDatabase.connection_uri_sq
+        )
+        assert result == TestDatabase.params_sq_driver_none
 
     def test_get_connection_uri(self):
-        result = Database.get_connection_uri(**TestDatabase.params)
-        assert result == TestDatabase.connection_uri
+        result = Database.get_connection_uri(**TestDatabase.params_pg)
+        assert result == TestDatabase.connection_uri_pg
+        result = Database.get_connection_uri(
+            **TestDatabase.params_pg_no_driver
+        )
+        assert result == TestDatabase.connection_uri_pg
+        result = Database.get_connection_uri(
+            **TestDatabase.params_pg_driver_none
+        )
+        assert result == TestDatabase.connection_uri_pg
+        result = Database.get_connection_uri(
+            **TestDatabase.params_sq_no_driver
+        )
+        assert result == TestDatabase.connection_uri_sq
+        result = Database.get_connection_uri(
+            **TestDatabase.params_sq_driver_none
+        )
+        assert result == TestDatabase.connection_uri_sq
 
     def test_wait_for_postgresql(self, mock_psycopg):
         TestDatabase.connected = False
-        wait_for_postgresql(TestDatabase.connection_uri)
+        wait_for_postgresql(TestDatabase.connection_uri_pg)
         assert TestDatabase.connected is True
 
     def test_get_session(self, nodatabase):
         with Database(
-            database=TestDatabase.dbpath, port=None, driver="sqlite"
+            database=TestDatabase.dbpath, port=None, dialect="sqlite"
         ) as dbsession:
             assert str(dbsession.bind.engine.url) == nodatabase
 
     def test_get_session_ssh(self, mock_psycopg, mock_SSHTunnelForwarder):
         with Database(
-            ssh_host="mysshhost", **TestDatabase.params
+            ssh_host="mysshhost", **TestDatabase.params_pg
         ) as dbsession:
             assert (
                 str(dbsession.bind.engine.url)
-                == "postgresql://myuser:mypass@0.0.0.0:12345/mydatabase"
+                == "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
             )
-        params = copy.deepcopy(TestDatabase.params)
+        params = copy.deepcopy(TestDatabase.params_pg)
         del params["password"]
         with Database(
             ssh_host="mysshhost", ssh_port=25, **params
         ) as dbsession:
             assert (
                 str(dbsession.bind.engine.url)
-                == "postgresql://myuser@0.0.0.0:12345/mydatabase"
+                == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )

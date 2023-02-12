@@ -34,7 +34,8 @@ class Database:
         port (Union[int, str, None]): Database port
         username (Optional[str]): Username to log into database
         password (Optional[str]): Password to log into database
-        driver (str): Database driver. Defaults to "postgresql".
+        dialect (str): Database dialect. Defaults to "postgresql".
+        driver (Optional[str]): Database driver. Defaults to None (psycopg if postgresql or None)
         **kwargs: See below
         ssh_host (str): SSH host (the server to connect to)
         ssh_port (int): SSH port. Defaults to 22.
@@ -52,7 +53,8 @@ class Database:
         port: Union[int, str, None] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-        driver: str = "postgresql",
+        dialect: str = "postgresql",
+        driver: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
         if port is not None:
@@ -77,9 +79,15 @@ class Database:
         else:
             self.server = None
         db_url = self.get_connection_uri(
-            database, host, port, username, password, driver=driver
+            database,
+            host,
+            port,
+            username,
+            password,
+            dialect=dialect,
+            driver=driver,
         )
-        if driver == "postgresql":
+        if dialect == "postgresql":
             wait_for_postgresql(db_url)
         self.session = self.get_session(db_url)
 
@@ -118,13 +126,21 @@ class Database:
             Dict[str,Any]: Dictionary of database connection parameters
         """
         result = urlsplit(db_uri)
+        dialectdriver = result.scheme.split("+")
+        if len(dialectdriver) == 1:
+            dialect = dialectdriver[0]
+            driver = None
+        else:
+            dialect, driver = dialectdriver
+
         return {
             "database": result.path[1:],
             "host": result.hostname,
             "port": result.port,
             "username": result.username,
             "password": result.password,
-            "driver": result.scheme,
+            "dialect": dialect,
+            "driver": driver,
         }
 
     @staticmethod
@@ -134,7 +150,8 @@ class Database:
         port: Union[int, str, None] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-        driver: str = "postgresql",
+        dialect: str = "postgresql",
+        driver: Optional[str] = None,
     ) -> str:
         """Gets connection uri from database connection parameters
 
@@ -144,12 +161,18 @@ class Database:
             port (Union[int, str, None]): Database port
             username (Optional[str]): Username to log into database
             password (Optional[str]): Password to log into database
-            driver (str): Database driver. Defaults to "postgresql".
+            dialect (str): Database dialect. Defaults to "postgresql".
+            driver (Optional[str]): Database driver. Defaults to None (psycopg if postgresql or None)
 
         Returns:
             str: Connection URI
         """
-        strings = [f"{driver}://"]
+        strings = [dialect]
+        if dialect == "postgresql" and driver is None:
+            driver = "psycopg"
+        if driver:
+            strings.append(f"+{driver}")
+        strings.append("://")
         if username:
             strings.append(username)
             if password:
