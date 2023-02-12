@@ -37,7 +37,7 @@ class TestDatabase:
 
     @pytest.fixture(scope="function")
     def mock_psycopg(self, monkeypatch):
-        def connect(db_uri):
+        def connect(*args, **kwargs):
             if TestDatabase.connected:
 
                 class Connection:
