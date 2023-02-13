@@ -78,17 +78,6 @@ class Database:
             port = self.server.local_bind_port
         else:
             self.server = None
-        if dialect == "postgresql":
-            db_uri = self.get_connection_uri(
-                database,
-                host,
-                port,
-                username,
-                password,
-                dialect=dialect,
-                include_driver=False,
-            )
-            wait_for_postgresql(db_uri)
         db_uri = self.get_connection_uri(
             database,
             host,
@@ -98,6 +87,8 @@ class Database:
             dialect=dialect,
             driver=driver,
         )
+        if dialect == "postgresql":
+            wait_for_postgresql(db_uri)
         self.session = self.get_session(db_uri)
 
     def __enter__(self) -> Session:
@@ -125,11 +116,15 @@ class Database:
         return Session()
 
     @staticmethod
-    def get_params_from_connection_uri(db_uri: str) -> Dict[str, Any]:
+    def get_params_from_connection_uri(
+        db_uri: str,
+        include_driver: bool = True,
+    ) -> Dict[str, Any]:
         """Gets PostgreSQL database connection parameters from connection URI
 
         Args:
             db_uri (str): Connection URI
+            include_driver (bool): Whether to include driver in params. Defaults to True.
 
         Returns:
             Dict[str,Any]: Dictionary of database connection parameters
@@ -141,16 +136,17 @@ class Database:
             driver = None
         else:
             dialect, driver = dialectdriver
-
-        return {
+        result = {
             "database": result.path[1:],
             "host": result.hostname,
             "port": result.port,
             "username": result.username,
             "password": result.password,
             "dialect": dialect,
-            "driver": driver,
         }
+        if include_driver:
+            result["driver"] = driver
+        return result
 
     @staticmethod
     def get_connection_uri(

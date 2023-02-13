@@ -9,7 +9,7 @@ import pytest
 from sshtunnel import SSHTunnelForwarder
 
 from hdx.database import Database
-from hdx.database.postgresql import wait_for_postgresql
+from hdx.database.postgresql import remove_driver_from_uri, wait_for_postgresql
 
 
 class TestDatabase:
@@ -129,6 +129,11 @@ class TestDatabase:
         )
         assert result == TestDatabase.params_pg
         result = Database.get_params_from_connection_uri(
+            TestDatabase.connection_uri_pg,
+            include_driver=False,
+        )
+        assert result == TestDatabase.params_pg_no_driver
+        result = Database.get_params_from_connection_uri(
             TestDatabase.connection_uri_pg_no_driver
         )
         assert result == TestDatabase.params_pg_driver_none
@@ -140,6 +145,10 @@ class TestDatabase:
     def test_get_connection_uri(self):
         result = Database.get_connection_uri(**TestDatabase.params_pg)
         assert result == TestDatabase.connection_uri_pg
+        result = Database.get_connection_uri(
+            **TestDatabase.params_pg, include_driver=False
+        )
+        assert result == TestDatabase.connection_uri_pg_no_driver
         result = Database.get_connection_uri(
             **TestDatabase.params_pg_no_driver
         )
@@ -156,6 +165,10 @@ class TestDatabase:
             **TestDatabase.params_sq_driver_none
         )
         assert result == TestDatabase.connection_uri_sq
+
+    def test_remove_driver_from_uri(self):
+        db_uri_nd = remove_driver_from_uri(TestDatabase.connection_uri_pg)
+        assert db_uri_nd == TestDatabase.connection_uri_pg_no_driver
 
     def test_wait_for_postgresql(self, mock_psycopg):
         TestDatabase.connected = False
