@@ -19,8 +19,8 @@ Additional postgresql functionality is available if this library is installed wi
 
 From 1.2.1, wait_for_postgresql takes connection URI not database parameters, 
 get_params_from_sqlalchemy_url renamed to get_params_from_connection_uri,
-get_sqlalchemy_url renamed to get_connection_uri. Parameter driver replaced 
-by dialect+driver.
+get_sqlalchemy_url renamed to get_connection_uri and moved to dburi module. 
+Parameter driver replaced by dialect+driver. 
 
 From 1.1.2, the postgres module is renamed postgresql and function wait_for_postgres
 is renamed wait_for_postgresql.
