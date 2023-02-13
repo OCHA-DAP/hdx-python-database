@@ -78,7 +78,18 @@ class Database:
             port = self.server.local_bind_port
         else:
             self.server = None
-        db_url = self.get_connection_uri(
+        if dialect == "postgresql":
+            db_uri = self.get_connection_uri(
+                database,
+                host,
+                port,
+                username,
+                password,
+                dialect=dialect,
+                include_driver=False,
+            )
+            wait_for_postgresql(db_uri)
+        db_uri = self.get_connection_uri(
             database,
             host,
             port,
@@ -87,9 +98,7 @@ class Database:
             dialect=dialect,
             driver=driver,
         )
-        if dialect == "postgresql":
-            wait_for_postgresql(db_url)
-        self.session = self.get_session(db_url)
+        self.session = self.get_session(db_uri)
 
     def __enter__(self) -> Session:
         return self.session
@@ -152,6 +161,7 @@ class Database:
         password: Optional[str] = None,
         dialect: str = "postgresql",
         driver: Optional[str] = None,
+        include_driver: bool = True,
     ) -> str:
         """Gets connection uri from database connection parameters
 
@@ -163,15 +173,17 @@ class Database:
             password (Optional[str]): Password to log into database
             dialect (str): Database dialect. Defaults to "postgresql".
             driver (Optional[str]): Database driver. Defaults to None (psycopg if postgresql or None)
+            include_driver (bool): Whether to include driver in uri. Defaults to True.
 
         Returns:
             str: Connection URI
         """
         strings = [dialect]
-        if dialect == "postgresql" and driver is None:
-            driver = "psycopg"
-        if driver:
-            strings.append(f"+{driver}")
+        if include_driver:
+            if dialect == "postgresql" and driver is None:
+                driver = "psycopg"
+            if driver:
+                strings.append(f"+{driver}")
         strings.append("://")
         if username:
             strings.append(username)
