@@ -9,8 +9,6 @@ from sshtunnel import SSHTunnelForwarder
 
 from hdx.database import Database
 
-from . import PsycopgConnection
-
 
 class TestDatabase:
     started = False
