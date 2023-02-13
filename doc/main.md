@@ -17,6 +17,11 @@ Additional postgresql functionality is available if this library is installed wi
 
 ## Breaking changes
 
+From 1.2.1, wait_for_postgresql takes connection URI not database parameters, 
+get_params_from_sqlalchemy_url renamed to get_params_from_connection_uri,
+get_sqlalchemy_url renamed to get_connection_uri. Parameter driver replaced 
+by dialect+driver.
+
 From 1.1.2, the postgres module is renamed postgresql and function wait_for_postgres
 is renamed wait_for_postgresql.
 
@@ -42,16 +47,38 @@ tunnel:
     # if needed SSH parameters. If database is PostgreSQL, will poll
     # till it is up.
     from hdx.database import Database
-    with Database(database="db", host="1.2.3.4", username="user", password="pass",
-                  driver="driver", ssh_host="5.6.7.8", ssh_port=2222,
-                  ssh_username="sshuser", ssh_private_key="path_to_key") as session:
+    with Database(database="db", host="1.2.3.4", username="user", 
+                  password="pass", dialect="dialect", driver="driver", 
+                  ssh_host="5.6.7.8", ssh_port=2222, ssh_username="sshuser", 
+                  ssh_private_key="path_to_key") as session:
         session.query(...)
 
-    # Extract dictionary of parameters from SQLAlchemy url
-    result = Database.get_params_from_sqlalchemy_url(TestDatabase.sqlalchemy_url)
+## Connection URI
 
-    # Build SQLAlchemy url from dictionary of parameters
-    result = Database.get_sqlalchemy_url(**TestDatabase.params)
+There are functions to handle converting from connection URIs to parameters and
+vice-versa as well as a function to remove the driver string from a connection 
+URI that contains both dialect and driver.
+
+    # Extract dictionary of parameters from database connection URI
+    result = get_params_from_connection_uri(
+        "postgresql+psycopg://myuser:mypass@myserver:1234/mydatabase"
+    )
+
+    # Build database connection URI from dictionary of parameters
+    params_pg = {
+        "database": "mydatabase",
+        "host": "myserver",
+        "port": 1234,
+        "username": "myuser",
+        "password": "mypass",
+        "dialect": "postgresql",
+        "driver": "psycopg",
+    }
+    result = get_connection_uri(**params_pg)
+
+    db_uri_nd = remove_driver_from_uri(
+        "postgresql+psycopg://myuser:mypass@myserver:1234/mydatabase"
+    )
 
 ## PostgreSQL specific
 

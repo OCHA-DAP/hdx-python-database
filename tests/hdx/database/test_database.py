@@ -4,28 +4,25 @@ import os
 from collections import namedtuple
 from os.path import join
 
-import psycopg2
 import pytest
 from sshtunnel import SSHTunnelForwarder
 
 from hdx.database import Database
-from hdx.database.postgresql import wait_for_postgresql
 
 
 class TestDatabase:
-    connected = False
     started = False
     stopped = False
     dbpath = join("tests", "test_database.db")
-    params = {
+    params_pg = {
         "database": "mydatabase",
         "host": "myserver",
         "port": 1234,
         "username": "myuser",
         "password": "mypass",
-        "driver": "postgresql",
+        "dialect": "postgresql",
+        "driver": "psycopg",
     }
-    sqlalchemy_url = "postgresql://myuser:mypass@myserver:1234/mydatabase"
 
     @pytest.fixture(scope="function")
     def nodatabase(self):
@@ -34,23 +31,6 @@ class TestDatabase:
         except OSError:
             pass
         return f"sqlite:///{TestDatabase.dbpath}"
-
-    @pytest.fixture(scope="function")
-    def mock_psycopg2(self, monkeypatch):
-        def connect(**kwargs):
-            if TestDatabase.connected:
-
-                class Connection:
-                    @staticmethod
-                    def close():
-                        return
-
-                return Connection()
-            else:
-                TestDatabase.connected = True
-                raise psycopg2.OperationalError
-
-        monkeypatch.setattr(psycopg2, "connect", connect)
 
     @pytest.fixture(scope="function")
     def mock_SSHTunnelForwarder(self, monkeypatch):
@@ -82,41 +62,26 @@ class TestDatabase:
 
         monkeypatch.setattr(Database, "get_session", get_session)
 
-    def test_get_params_from_sqlalchemy_url(self):
-        result = Database.get_params_from_sqlalchemy_url(
-            TestDatabase.sqlalchemy_url
-        )
-        assert result == TestDatabase.params
-
-    def test_get_sqlalchemy_url(self):
-        result = Database.get_sqlalchemy_url(**TestDatabase.params)
-        assert result == TestDatabase.sqlalchemy_url
-
-    def test_wait_for_postgresql(self, mock_psycopg2):
-        TestDatabase.connected = False
-        wait_for_postgresql("mydatabase", "myserver", 5432, "myuser", "mypass")
-        assert TestDatabase.connected is True
-
     def test_get_session(self, nodatabase):
         with Database(
-            database=TestDatabase.dbpath, port=None, driver="sqlite"
+            database=TestDatabase.dbpath, port=None, dialect="sqlite"
         ) as dbsession:
             assert str(dbsession.bind.engine.url) == nodatabase
 
-    def test_get_session_ssh(self, mock_psycopg2, mock_SSHTunnelForwarder):
+    def test_get_session_ssh(self, mock_psycopg, mock_SSHTunnelForwarder):
         with Database(
-            ssh_host="mysshhost", **TestDatabase.params
+            ssh_host="mysshhost", **TestDatabase.params_pg
         ) as dbsession:
             assert (
                 str(dbsession.bind.engine.url)
-                == "postgresql://myuser:mypass@0.0.0.0:12345/mydatabase"
+                == "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
             )
-        params = copy.deepcopy(TestDatabase.params)
+        params = copy.deepcopy(TestDatabase.params_pg)
         del params["password"]
         with Database(
             ssh_host="mysshhost", ssh_port=25, **params
         ) as dbsession:
             assert (
                 str(dbsession.bind.engine.url)
-                == "postgresql://myuser@0.0.0.0:12345/mydatabase"
+                == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
