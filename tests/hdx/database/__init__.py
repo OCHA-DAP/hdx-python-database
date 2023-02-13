@@ -1,0 +1,2 @@
+class PsycopgConnection:
+    connected = False

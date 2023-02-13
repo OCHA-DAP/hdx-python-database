@@ -53,8 +53,14 @@ tunnel:
                   ssh_private_key="path_to_key") as session:
         session.query(...)
 
+## Connection URI
+
+There are functions to handle converting from connection URIs to parameters and
+vice-versa as well as a function to remove the driver string from a connection 
+URI that contains both dialect and driver.
+
     # Extract dictionary of parameters from database connection URI
-    result = Database.get_params_from_connection_uri(
+    result = get_params_from_connection_uri(
         "postgresql+psycopg://myuser:mypass@myserver:1234/mydatabase"
     )
 
@@ -68,7 +74,11 @@ tunnel:
         "dialect": "postgresql",
         "driver": "psycopg",
     }
-    result = Database.get_connection_uri(**params_pg)
+    result = get_connection_uri(**params_pg)
+
+    db_uri_nd = remove_driver_from_uri(
+        "postgresql+psycopg://myuser:mypass@myserver:1234/mydatabase"
+    )
 
 ## PostgreSQL specific
 
