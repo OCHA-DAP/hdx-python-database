@@ -6,8 +6,8 @@ import logging
 from typing import Any, Optional, Union
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import NullPool
 from sshtunnel import SSHTunnelForwarder
 
@@ -16,13 +16,10 @@ from hdx.database.postgresql import wait_for_postgresql
 logger = logging.getLogger(__name__)
 
 
-class HDXBase:
+class Base(DeclarativeBase):
     @declared_attr.directive
     def __tablename__(cls):
         return f"{cls.__name__.lower()}s"
-
-
-Base = declarative_base(cls=HDXBase)
 
 
 class Database:
@@ -100,17 +97,18 @@ class Database:
             self.server.stop()
 
     @staticmethod
-    def get_session(db_uri: str) -> Session:
-        """Gets SQLAlchemy session given url. Your tables must inherit
-        from Base in hdx.utilities.database.
+    def get_session(db_uri: str, base: DeclarativeBase = Base) -> Session:
+        """Gets SQLAlchemy session given url. Tables must inherit from Base in
+        hdx.utilities.database unless base is defined.
 
         Args:
             db_uri (str): Connection URI
+            base (DeclarativeBase): Base database table class. Defaults to Base.
 
         Returns:
             sqlalchemy.orm.Session: SQLAlchemy session
         """
         engine = create_engine(db_uri, poolclass=NullPool, echo=False)
         Session = sessionmaker(bind=engine)
-        Base.metadata.create_all(engine)
+        base.metadata.create_all(engine)
         return Session()
