@@ -49,7 +49,7 @@ class TestDatabase:
         monkeypatch.setattr(SSHTunnelForwarder, "local_bind_host", "0.0.0.0")
         monkeypatch.setattr(SSHTunnelForwarder, "local_bind_port", 12345)
 
-        def get_session(_, db_url):
+        def get_session(_, db_url, table_base):
             class Session:
                 bind = namedtuple("Bind", "engine")
 

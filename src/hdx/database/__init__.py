@@ -33,6 +33,7 @@ class Database:
         password (Optional[str]): Password to log into database
         dialect (str): Database dialect. Defaults to "postgresql".
         driver (Optional[str]): Database driver. Defaults to None (psycopg if postgresql or None)
+        table_base (DeclarativeBase): Base database table class. Defaults to Base.
         **kwargs: See below
         ssh_host (str): SSH host (the server to connect to)
         ssh_port (int): SSH port. Defaults to 22.
@@ -52,6 +53,7 @@ class Database:
         password: Optional[str] = None,
         dialect: str = "postgresql",
         driver: Optional[str] = None,
+        table_base: DeclarativeBase = Base,
         **kwargs: Any,
     ) -> None:
         if port is not None:
@@ -86,7 +88,7 @@ class Database:
         )
         if dialect == "postgresql":
             wait_for_postgresql(db_uri)
-        self.session = self.get_session(db_uri)
+        self.session = self.get_session(db_uri, table_base=table_base)
 
     def __enter__(self) -> Session:
         return self.session
@@ -97,18 +99,18 @@ class Database:
             self.server.stop()
 
     @staticmethod
-    def get_session(db_uri: str, base: DeclarativeBase = Base) -> Session:
+    def get_session(db_uri: str, table_base: DeclarativeBase = Base) -> Session:
         """Gets SQLAlchemy session given url. Tables must inherit from Base in
         hdx.utilities.database unless base is defined.
 
         Args:
             db_uri (str): Connection URI
-            base (DeclarativeBase): Base database table class. Defaults to Base.
+            table_base (DeclarativeBase): Base database table class. Defaults to Base.
 
         Returns:
             sqlalchemy.orm.Session: SQLAlchemy session
         """
         engine = create_engine(db_uri, poolclass=NullPool, echo=False)
         Session = sessionmaker(bind=engine)
-        base.metadata.create_all(engine)
+        table_base.metadata.create_all(engine)
         return Session()
