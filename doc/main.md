@@ -17,6 +17,9 @@ Additional postgresql functionality is available if this library is installed wi
 
 ## Breaking changes
 
+From 1.2.2, database datetime columns are assumed to be timezoneless unless
+db_has_tz is set to True.
+
 From 1.2.1, wait_for_postgresql takes connection URI not database parameters, 
 get_params_from_sqlalchemy_url renamed to get_params_from_connection_uri
 and moved to dburi module, get_sqlalchemy_url renamed to get_connection_uri and 
