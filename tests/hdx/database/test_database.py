@@ -2,13 +2,16 @@
 import copy
 import os
 from collections import namedtuple
+from datetime import datetime, timezone
 from os.path import join
 
 import pytest
+from sqlalchemy import select
 from sshtunnel import SSHTunnelForwarder
 
 from hdx.database import Base, Database
-from hdx.database.database_no_tz import Base as NoTZBase
+from hdx.database.no_timezone import Base as NoTZBase
+from tests.hdx.database.dbtestdate import DBTestDate
 
 
 class TestDatabase:
@@ -71,6 +74,13 @@ class TestDatabase:
         ) as dbsession:
             assert str(dbsession.bind.engine.url) == nodatabase
             assert TestDatabase.table_base == NoTZBase
+            now = datetime(2022, 10, 20, 22, 35, 55, tzinfo=timezone.utc)
+            input_dbtestdate = DBTestDate()
+            input_dbtestdate.test_date = now
+            dbsession.add(input_dbtestdate)
+            dbsession.commit()
+            dbtestdate = dbsession.execute(select(DBTestDate)).scalar_one()
+            assert dbtestdate.test_date == now
 
     def test_get_session_ssh(self, mock_psycopg, mock_SSHTunnelForwarder):
         with Database(

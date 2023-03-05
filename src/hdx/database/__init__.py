@@ -11,7 +11,7 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import NullPool
 from sshtunnel import SSHTunnelForwarder
 
-from .database_no_tz import Base as NoTZBase
+from .no_timezone import Base as NoTZBase
 from .postgresql import wait_for_postgresql
 
 logger = logging.getLogger(__name__)
