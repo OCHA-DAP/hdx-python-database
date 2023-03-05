@@ -7,12 +7,14 @@ from os.path import join
 import pytest
 from sshtunnel import SSHTunnelForwarder
 
-from hdx.database import Database
+from hdx.database import Base, Database
+from hdx.database.database_no_tz import Base as NoTZBase
 
 
 class TestDatabase:
     started = False
     stopped = False
+    table_base = NoTZBase
     dbpath = join("tests", "test_database.db")
     params_pg = {
         "database": "mydatabase",
@@ -58,6 +60,7 @@ class TestDatabase:
 
             Session.bind.engine = namedtuple("Engine", "url")
             Session.bind.engine.url = db_url
+            TestDatabase.table_base = table_base
             return Session()
 
         monkeypatch.setattr(Database, "get_session", get_session)
@@ -67,6 +70,7 @@ class TestDatabase:
             database=TestDatabase.dbpath, port=None, dialect="sqlite"
         ) as dbsession:
             assert str(dbsession.bind.engine.url) == nodatabase
+            assert TestDatabase.table_base == NoTZBase
 
     def test_get_session_ssh(self, mock_psycopg, mock_SSHTunnelForwarder):
         with Database(
@@ -85,3 +89,12 @@ class TestDatabase:
                 str(dbsession.bind.engine.url)
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
+        assert TestDatabase.table_base == NoTZBase
+        with Database(
+            ssh_host="mysshhost", ssh_port=25, db_has_tz=True, **params
+        ) as dbsession:
+            assert (
+                str(dbsession.bind.engine.url)
+                == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
+            )
+            assert TestDatabase.table_base == Base

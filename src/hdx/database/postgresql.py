@@ -2,7 +2,7 @@
 import logging
 import time
 
-from hdx.database.dburi import remove_driver_from_uri
+from .dburi import remove_driver_from_uri
 
 try:
     import psycopg

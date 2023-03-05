@@ -3,7 +3,7 @@ from .dburi import get_connection_uri
 
 """Database utilities"""
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Optional, Type, Union
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declared_attr
@@ -11,7 +11,8 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import NullPool
 from sshtunnel import SSHTunnelForwarder
 
-from hdx.database.postgresql import wait_for_postgresql
+from .database_no_tz import Base as NoTZBase
+from .postgresql import wait_for_postgresql
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,11 @@ class Base(DeclarativeBase):
 
 
 class Database:
-    """Database helper class to handle ssh tunnels, waiting for PostgreSQL to be up etc.
+    """Database helper class to handle ssh tunnels, waiting for PostgreSQL to
+    be up etc. Can be used in a with statement returning a Session object.
+    db_has_tz which defaults to False indicates whether database datetime
+    columns have timezones. If not, conversion occurs between Python datetimes
+    with timezones to timezoneless database columns.
 
     Args:
         database (Optional[str]): Database name
@@ -33,7 +38,7 @@ class Database:
         password (Optional[str]): Password to log into database
         dialect (str): Database dialect. Defaults to "postgresql".
         driver (Optional[str]): Database driver. Defaults to None (psycopg if postgresql or None)
-        table_base (DeclarativeBase): Base database table class. Defaults to Base.
+        db_has_tz (bool): True if db datetime columns have timezone. Defaults to False.
         **kwargs: See below
         ssh_host (str): SSH host (the server to connect to)
         ssh_port (int): SSH port. Defaults to 22.
@@ -53,7 +58,7 @@ class Database:
         password: Optional[str] = None,
         dialect: str = "postgresql",
         driver: Optional[str] = None,
-        table_base: DeclarativeBase = Base,
+        db_has_tz: bool = False,
         **kwargs: Any,
     ) -> None:
         if port is not None:
@@ -88,6 +93,10 @@ class Database:
         )
         if dialect == "postgresql":
             wait_for_postgresql(db_uri)
+        if db_has_tz:
+            table_base = Base
+        else:
+            table_base = NoTZBase
         self.session = self.get_session(db_uri, table_base=table_base)
 
     def __enter__(self) -> Session:
@@ -99,13 +108,15 @@ class Database:
             self.server.stop()
 
     @staticmethod
-    def get_session(db_uri: str, table_base: DeclarativeBase = Base) -> Session:
+    def get_session(
+        db_uri: str, table_base: Type[DeclarativeBase] = NoTZBase
+    ) -> Session:
         """Gets SQLAlchemy session given url. Tables must inherit from Base in
         hdx.utilities.database unless base is defined.
 
         Args:
             db_uri (str): Connection URI
-            table_base (DeclarativeBase): Base database table class. Defaults to Base.
+            table_base (Type[DeclarativeBase]): Base database table class. Defaults to NoTZBase.
 
         Returns:
             sqlalchemy.orm.Session: SQLAlchemy session
