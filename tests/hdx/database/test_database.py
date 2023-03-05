@@ -11,7 +11,8 @@ from sshtunnel import SSHTunnelForwarder
 
 from hdx.database import Base, Database
 from hdx.database.no_timezone import Base as NoTZBase
-from tests.hdx.database.dbtestdate import DBTestDate
+
+from .dbtestdate import DBTestDate
 
 
 class TestDatabase:
