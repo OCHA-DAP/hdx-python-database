@@ -1,26 +1,20 @@
 from ._version import version as __version__  # noqa: F401
-from .dburi import get_connection_uri
 
 """Database utilities"""
 import logging
 from typing import Any, Optional, Type, Union
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import NullPool
 from sshtunnel import SSHTunnelForwarder
 
+from .dburi import get_connection_uri
 from .no_timezone import Base as NoTZBase
 from .postgresql import wait_for_postgresql
+from .with_timezone import Base
 
 logger = logging.getLogger(__name__)
-
-
-class Base(DeclarativeBase):
-    @declared_attr.directive
-    def __tablename__(cls):
-        return f"{cls.__name__.lower()}s"
 
 
 class Database:

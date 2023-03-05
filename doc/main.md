@@ -17,6 +17,10 @@ Additional postgresql functionality is available if this library is installed wi
 
 ## Breaking changes
 
+From 1.2.3, Base must be chosen from `hdx.database.no_timezone` 
+(`db_has_tz=False`: the default) or `hdx.database.with_timezone` 
+(`db_has_tz=True`).
+
 From 1.2.2, database datetime columns are assumed to be timezoneless unless
 db_has_tz is set to True.
 
@@ -38,9 +42,9 @@ Versions from 1.0.6 no longer support Python 2.7.
 ## Database
 
 Your SQLAlchemy database tables must inherit from `Base` in
-`hdx.database` or `hdx.database.database_notz` eg. :
+`hdx.database.no_timezone` or `hdx.database.with_timezone` eg. :
 
-    from hdx.database import Base
+    from hdx.database.no_timezone import Base
     class MyTable(Base):
         my_col = Column(Integer, ForeignKey(MyTable2.col2), primary_key=True)
 
@@ -58,8 +62,10 @@ tunnel:
         session.query(...)
 
 `db_has_tz` which defaults to `False` indicates whether database datetime 
-columns have timezones. If not, conversion occurs between Python datetimes
-with timezones to timezoneless database columns.   
+columns have timezones. If `db_has_tz` is `True`, use `Base` from 
+`hdx.database.with_timezone`, otherwise use `Base` from 
+`hdx.database.no_timezone`. If `db_has_tz` is `False`, conversion occurs 
+between Python datetimes with timezones to timezoneless database columns.   
 
 ## Connection URI
 
