@@ -1,5 +1,3 @@
-from ._version import version as __version__  # noqa: F401
-
 """Database utilities"""
 import logging
 from typing import Any, Optional, Type, Union
@@ -9,6 +7,7 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import NullPool
 from sshtunnel import SSHTunnelForwarder
 
+from ._version import version as __version__  # noqa: F401
 from .dburi import get_connection_uri
 from .no_timezone import Base as NoTZBase
 from .postgresql import wait_for_postgresql

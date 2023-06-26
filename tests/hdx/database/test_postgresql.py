@@ -1,8 +1,7 @@
 """PostgreSQL Utility Tests"""
 
-from hdx.database.postgresql import wait_for_postgresql
-
 from . import PsycopgConnection
+from hdx.database.postgresql import wait_for_postgresql
 
 
 class TestPostgreSQL:
