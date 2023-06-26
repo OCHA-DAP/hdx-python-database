@@ -18,7 +18,7 @@ renderer:
   pages:
     - title: Home
       name: index
-      source: doc/main.md
+      source: main.md
     - title: API Documentation
       children:
         - title: Database
