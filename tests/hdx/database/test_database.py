@@ -9,10 +9,9 @@ import pytest
 from sqlalchemy import select
 from sshtunnel import SSHTunnelForwarder
 
+from .dbtestdate import DBTestDate
 from hdx.database import Base, Database
 from hdx.database.no_timezone import Base as NoTZBase
-
-from .dbtestdate import DBTestDate
 
 
 class TestDatabase:
