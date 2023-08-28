@@ -108,8 +108,9 @@ class TestDatabase:
             assert row.id == "1"
             assert row.col1 == "wfrefds"
             assert row.date1 == datetime(
-                1993, 9, 23, 14, 12, 56, 111000, tzinfo=timezone.utc
-            )
+                1993, 9, 23, 14, 12, 56, 111000
+            )  # with reflection, type annotation maps do not work and hence
+            # we don't have a timezone here
 
     def test_get_session_ssh(self, mock_psycopg, mock_SSHTunnelForwarder):
         with Database(

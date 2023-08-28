@@ -19,10 +19,12 @@ logger = logging.getLogger(__name__)
 
 class Database:
     """Database helper class to handle ssh tunnels, waiting for PostgreSQL to
-    be up etc. Can be used in a with statement returning a Session object.
-    db_has_tz which defaults to False indicates whether database datetime
-    columns have timezones. If not, conversion occurs between Python datetimes
-    with timezones to timezoneless database columns.
+    be up etc. Can be used in a with statement returning a Session object that
+    if reflect is True will have a variable reflected_classes containing the
+    reflected classes. db_has_tz which defaults to False indicates whether
+    database datetime columns have timezones. If not, conversion occurs between
+    Python datetimes with timezones to timezoneless database columns (but not
+    when using reflection).
 
     Args:
         database (Optional[str]): Database name
@@ -112,7 +114,11 @@ class Database:
         reflect: bool = False,
     ) -> Session:
         """Gets SQLAlchemy session given url. Tables must inherit from Base in
-        hdx.utilities.database unless base is defined.
+        hdx.utilities.database unless base is defined. If reflect is True,
+        classes will be reflected from an existing database and the reflected
+        classes are returned in a variable reflected_classes in the returned
+        Session object. Note that type annotation maps don't work with
+        reflection.
 
         Args:
             db_uri (str): Connection URI
