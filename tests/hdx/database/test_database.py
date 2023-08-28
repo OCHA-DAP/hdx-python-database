@@ -1,17 +1,19 @@
 """Database Utility Tests"""
-import copy
-import os
 from collections import namedtuple
+from copy import deepcopy
 from datetime import datetime, timezone
+from os import remove
 from os.path import join
+from shutil import copyfile
 
 import pytest
 from sqlalchemy import select
 from sshtunnel import SSHTunnelForwarder
 
 from .dbtestdate import DBTestDate
-from hdx.database import Base, Database
+from hdx.database import Database
 from hdx.database.no_timezone import Base as NoTZBase
+from hdx.database.with_timezone import Base as TZBase
 
 
 class TestDatabase:
@@ -19,6 +21,7 @@ class TestDatabase:
     stopped = False
     table_base = NoTZBase
     dbpath = join("tests", "test_database.db")
+    testdb = join("tests", "fixtures", "test.db")
     params_pg = {
         "database": "mydatabase",
         "host": "myserver",
@@ -32,7 +35,16 @@ class TestDatabase:
     @pytest.fixture(scope="function")
     def nodatabase(self):
         try:
-            os.remove(TestDatabase.dbpath)
+            remove(TestDatabase.dbpath)
+        except OSError:
+            pass
+        return f"sqlite:///{TestDatabase.dbpath}"
+
+    @pytest.fixture(scope="function")
+    def database_to_reflect(self):
+        try:
+            remove(TestDatabase.dbpath)
+            copyfile(TestDatabase.testdb, TestDatabase.dbpath)
         except OSError:
             pass
         return f"sqlite:///{TestDatabase.dbpath}"
@@ -54,7 +66,7 @@ class TestDatabase:
         monkeypatch.setattr(SSHTunnelForwarder, "local_bind_host", "0.0.0.0")
         monkeypatch.setattr(SSHTunnelForwarder, "local_bind_port", 12345)
 
-        def get_session(_, db_url, table_base):
+        def get_session(_, db_url, table_base, reflect):
             class Session:
                 bind = namedtuple("Bind", "engine")
 
@@ -82,6 +94,23 @@ class TestDatabase:
             dbtestdate = dbsession.execute(select(DBTestDate)).scalar_one()
             assert dbtestdate.test_date == now
 
+    def test_get_reflect_session(self, database_to_reflect):
+        with Database(
+            database=TestDatabase.dbpath,
+            port=None,
+            dialect="sqlite",
+            reflect=True,
+        ) as dbsession:
+            assert TestDatabase.table_base == NoTZBase
+            assert str(dbsession.bind.engine.url) == database_to_reflect
+            Table1 = dbsession.reflected_classes.table1
+            row = dbsession.execute(select(Table1)).scalar_one()
+            assert row.id == "1"
+            assert row.col1 == "wfrefds"
+            # with reflection, type annotation maps do not work and hence
+            # we don't have a timezone here
+            assert row.date1 == datetime(1993, 9, 23, 14, 12, 56, 111000)
+
     def test_get_session_ssh(self, mock_psycopg, mock_SSHTunnelForwarder):
         with Database(
             ssh_host="mysshhost", **TestDatabase.params_pg
@@ -90,7 +119,7 @@ class TestDatabase:
                 str(dbsession.bind.engine.url)
                 == "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
             )
-        params = copy.deepcopy(TestDatabase.params_pg)
+        params = deepcopy(TestDatabase.params_pg)
         del params["password"]
         with Database(
             ssh_host="mysshhost", ssh_port=25, **params
@@ -107,4 +136,4 @@ class TestDatabase:
                 str(dbsession.bind.engine.url)
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
-            assert TestDatabase.table_base == Base
+            assert TestDatabase.table_base == TZBase

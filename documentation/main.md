@@ -58,14 +58,22 @@ tunnel:
     with Database(database="db", host="1.2.3.4", username="user", 
                   password="pass", dialect="dialect", driver="driver", 
                   ssh_host="5.6.7.8", ssh_port=2222, ssh_username="sshuser", 
-                  ssh_private_key="path_to_key", db_has_tz=True) as session:
+                  ssh_private_key="path_to_key", db_has_tz=True, 
+                  reflect=False) as session:
         session.query(...)
 
 `db_has_tz` which defaults to `False` indicates whether database datetime 
 columns have timezones. If `db_has_tz` is `True`, use `Base` from 
 `hdx.database.with_timezone`, otherwise use `Base` from 
 `hdx.database.no_timezone`. If `db_has_tz` is `False`, conversion occurs 
-between Python datetimes with timezones to timezoneless database columns.   
+between Python datetimes with timezones to timezoneless database columns.
+
+If `reflect` (which defaults to `False`) is `True`, classes will be reflected 
+from an existing database and the reflected classes are returned in a variable 
+`reflected_classes` in the returned Session object. Note that type annotation 
+maps don't work with reflection and hence `db_has_tz` will be ignored ie.
+there will be no conversion between Python datetimes with timezones to 
+timezoneless database columns.
 
 ## Connection URI
 

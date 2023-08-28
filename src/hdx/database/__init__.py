@@ -3,6 +3,7 @@ import logging
 from typing import Any, Optional, Type, Union
 
 from sqlalchemy import create_engine
+from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import NullPool
 from sshtunnel import SSHTunnelForwarder
@@ -11,17 +12,19 @@ from ._version import version as __version__  # noqa: F401
 from .dburi import get_connection_uri
 from .no_timezone import Base as NoTZBase
 from .postgresql import wait_for_postgresql
-from .with_timezone import Base
+from .with_timezone import Base as TZBase
 
 logger = logging.getLogger(__name__)
 
 
 class Database:
     """Database helper class to handle ssh tunnels, waiting for PostgreSQL to
-    be up etc. Can be used in a with statement returning a Session object.
-    db_has_tz which defaults to False indicates whether database datetime
-    columns have timezones. If not, conversion occurs between Python datetimes
-    with timezones to timezoneless database columns.
+    be up etc. Can be used in a with statement returning a Session object that
+    if reflect is True will have a variable reflected_classes containing the
+    reflected classes. db_has_tz which defaults to False indicates whether
+    database datetime columns have timezones. If not, conversion occurs between
+    Python datetimes with timezones to timezoneless database columns (but not
+    when using reflection).
 
     Args:
         database (Optional[str]): Database name
@@ -32,6 +35,7 @@ class Database:
         dialect (str): Database dialect. Defaults to "postgresql".
         driver (Optional[str]): Database driver. Defaults to None (psycopg if postgresql or None)
         db_has_tz (bool): True if db datetime columns have timezone. Defaults to False.
+        reflect (bool): Whether to reflect existing tables. Defaults to False.
         **kwargs: See below
         ssh_host (str): SSH host (the server to connect to)
         ssh_port (int): SSH port. Defaults to 22.
@@ -52,6 +56,7 @@ class Database:
         dialect: str = "postgresql",
         driver: Optional[str] = None,
         db_has_tz: bool = False,
+        reflect: bool = False,
         **kwargs: Any,
     ) -> None:
         if port is not None:
@@ -87,10 +92,12 @@ class Database:
         if dialect == "postgresql":
             wait_for_postgresql(db_uri)
         if db_has_tz:
-            table_base = Base
+            table_base = TZBase
         else:
             table_base = NoTZBase
-        self.session = self.get_session(db_uri, table_base=table_base)
+        self.session = self.get_session(
+            db_uri, table_base=table_base, reflect=reflect
+        )
 
     def __enter__(self) -> Session:
         return self.session
@@ -102,19 +109,34 @@ class Database:
 
     @staticmethod
     def get_session(
-        db_uri: str, table_base: Type[DeclarativeBase] = NoTZBase
+        db_uri: str,
+        table_base: Type[DeclarativeBase] = NoTZBase,
+        reflect: bool = False,
     ) -> Session:
         """Gets SQLAlchemy session given url. Tables must inherit from Base in
-        hdx.utilities.database unless base is defined.
+        hdx.utilities.database unless base is defined. If reflect is True,
+        classes will be reflected from an existing database and the reflected
+        classes are returned in a variable reflected_classes in the returned
+        Session object. Note that type annotation maps don't work with
+        reflection.
 
         Args:
             db_uri (str): Connection URI
             table_base (Type[DeclarativeBase]): Base database table class. Defaults to NoTZBase.
+            reflect (bool): Whether to reflect existing tables. Defaults to False.
 
         Returns:
             sqlalchemy.orm.Session: SQLAlchemy session
         """
         engine = create_engine(db_uri, poolclass=NullPool, echo=False)
         Session = sessionmaker(bind=engine)
-        table_base.metadata.create_all(engine)
-        return Session()
+        if reflect:
+            Base = automap_base(declarative_base=table_base)
+            Base.prepare(autoload_with=engine)
+            classes = Base.classes
+        else:
+            table_base.metadata.create_all(engine)
+            classes = None
+        session = Session()
+        session.reflected_classes = classes
+        return session
