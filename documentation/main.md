@@ -17,6 +17,9 @@ Additional postgresql functionality is available if this library is installed wi
 
 ## Breaking changes
 
+From 1.2.7, default table names are no longer plural. The camel case class name 
+is converted to snake case, for example `MyTable` becomes `my_table`.
+
 From 1.2.3, Base must be chosen from `hdx.database.no_timezone` 
 (`db_has_tz=False`: the default) or `hdx.database.with_timezone` 
 (`db_has_tz=True`).
