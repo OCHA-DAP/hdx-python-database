@@ -81,6 +81,7 @@ class TestDatabase:
         monkeypatch.setattr(Database, "get_session", get_session)
 
     def test_get_session(self, nodatabase):
+        assert DBTestDate.__tablename__ == "db_test_date"
         with Database(
             database=TestDatabase.dbpath, port=None, dialect="sqlite"
         ) as dbsession:

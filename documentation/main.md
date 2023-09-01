@@ -48,6 +48,9 @@ Your SQLAlchemy database tables must inherit from `Base` in
     class MyTable(Base):
         my_col: Mapped[int] = mapped_column(Integer, ForeignKey(MyTable2.col2), primary_key=True)
 
+A default table name is set which can be overridden: it is the camel case class 
+name to converted to snake case, for example `MyTable` becomes `my_table`.
+
 Then a connection can be made to a database as follows including through an SSH
 tunnel:
 
