@@ -46,7 +46,7 @@ Your SQLAlchemy database tables must inherit from `Base` in
 
     from hdx.database.no_timezone import Base
     class MyTable(Base):
-        my_col = Column(Integer, ForeignKey(MyTable2.col2), primary_key=True)
+        my_col: Mapped[int] = mapped_column(Integer, ForeignKey(MyTable2.col2), primary_key=True)
 
 Then a connection can be made to a database as follows including through an SSH
 tunnel:
