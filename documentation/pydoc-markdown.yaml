@@ -23,7 +23,7 @@ renderer:
       children:
         - title: Database
           contents:
-            - hdx.database.Database
+            - hdx.database.Database.*
         - title: PostgreSQL specific
           contents:
             - hdx.database.postgresql.*
