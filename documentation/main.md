@@ -122,25 +122,17 @@ is available in this library.
 
 This allows creating views like this:
 ```
+class DBOrgType(Base):
+    __tablename__ = "org_type"
+
+    code: Mapped[str] = mapped_column(String(32), primary_key=True)
+    description: Mapped[str] = mapped_column(String(512), nullable=False)
+
+
 org_type_view = view(
     name="org_type_view",
     metadata=Base.metadata,
     selectable=select(*DBOrgType.__table__.columns),
-)
-
-org_view = view(
-    name="org_view",
-    metadata=Base.metadata,
-    selectable=select(
-        *DBOrg.__table__.columns,
-        DBOrgType.description.label("org_type_description"),
-    ).select_from(
-        DBOrg.__table__.join(
-            DBOrgType.__table__,
-            DBOrg.org_type_code == DBOrgType.code,
-            isouter=True,
-        )
-    ),
 )
 ```
 
