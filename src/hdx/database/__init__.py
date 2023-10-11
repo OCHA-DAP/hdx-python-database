@@ -64,7 +64,7 @@ class Database:
             try:
                 import sshtunnel
             except ImportError:
-                # dependency missing, issue a warning
+                # dependency missing, log an error
                 logger.error(
                     "sshtunnel not found! Please install hdx-python-database[sshtunnel] to enable."
                 )
