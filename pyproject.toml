@@ -46,8 +46,8 @@ content-type = "text/markdown"
 Homepage = "https://github.com/OCHA-DAP/hdx-python-database"
 
 [project.optional-dependencies]
-postgresql = ["psycopg[binary]"]
 sshtunnel = ["sshtunnel"]
+postgresql = ["psycopg[binary]"]
 test = ["pytest", "pytest-cov"]
 dev = ["pre-commit"]
 
@@ -76,7 +76,7 @@ version_scheme = "python-simplified-semver"
 # Tests
 
 [tool.hatch.envs.test]
-features = ["postgresql", "test"]
+features = ["sshtunnel", "postgresql", "test"]
 
 [tool.hatch.envs.test.scripts]
 test = """
