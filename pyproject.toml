@@ -34,8 +34,7 @@ classifiers = [
 requires-python = ">=3.8"
 
 dependencies = [
-    "sqlalchemy>= 2",
-    "sshtunnel",
+    "sqlalchemy>=2",
 ]
 dynamic = ["version"]
 
@@ -47,6 +46,7 @@ content-type = "text/markdown"
 Homepage = "https://github.com/OCHA-DAP/hdx-python-database"
 
 [project.optional-dependencies]
+sshtunnel = ["sshtunnel"]
 postgresql = ["psycopg[binary]"]
 test = ["pytest", "pytest-cov"]
 dev = ["pre-commit"]
@@ -76,7 +76,7 @@ version_scheme = "python-simplified-semver"
 # Tests
 
 [tool.hatch.envs.test]
-features = ["postgresql", "test"]
+features = ["sshtunnel", "postgresql", "test"]
 
 [tool.hatch.envs.test.scripts]
 test = """

@@ -6,7 +6,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import NullPool
-from sshtunnel import SSHTunnelForwarder
 
 from ._version import version as __version__  # noqa: F401
 from .dburi import get_connection_uri
@@ -62,6 +61,14 @@ class Database:
         if port is not None:
             port = int(port)
         if len(kwargs) != 0:
+            try:
+                import sshtunnel
+            except ImportError:
+                # dependency missing, log an error
+                logger.error(
+                    "sshtunnel not found! Please install hdx-python-database[sshtunnel] to enable."
+                )
+                raise
             ssh_host = kwargs["ssh_host"]
             del kwargs["ssh_host"]
             ssh_port = kwargs.get("ssh_port")
@@ -70,7 +77,7 @@ class Database:
                 del kwargs["ssh_port"]
             else:
                 ssh_port = 22
-            self.server = SSHTunnelForwarder(
+            self.server = sshtunnel.SSHTunnelForwarder(
                 (ssh_host, ssh_port),
                 remote_bind_address=(host, port),
                 **kwargs,

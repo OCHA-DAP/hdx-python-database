@@ -5,9 +5,9 @@
 [![Downloads](https://img.shields.io/pypi/dm/hdx-python-database.svg)](https://pypistats.org/packages/hdx-python-database)
 
 The HDX Python Database Library provides utilities for connecting to databases in a standard way including
-through an ssh tunnel if needed. It is built on top of SQLAlchemy and simplifies its setup. 
+through an ssh tunnel if needed. It is built on top of SQLAlchemy and simplifies its setup.
 
 For more information, please read the [documentation](https://hdx-python-database.readthedocs.io/en/latest/).
 
-This library is part of the [Humanitarian Data Exchange](https://data.humdata.org/) (HDX) project. If you have 
+This library is part of the [Humanitarian Data Exchange](https://data.humdata.org/) (HDX) project. If you have
 humanitarian related data, please upload your datasets to HDX.
