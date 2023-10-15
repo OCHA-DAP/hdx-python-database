@@ -4,8 +4,7 @@ Create a DB View.
 Copied from:
 https://github.com/sqlalchemy/sqlalchemy/wiki/Views#sqlalchemy-14-20-version
 """
-from dataclasses import dataclass
-from typing import List
+from typing import Dict, List
 
 import sqlalchemy as sa
 from sqlalchemy import MetaData, Selectable, TableClause
@@ -76,33 +75,25 @@ def view(name: str, metadata: MetaData, selectable: Selectable) -> TableClause:
     return t
 
 
-@dataclass
-class ViewParams:
-    """Class for keeping view constructor parameters."""
-
-    name: str
-    metadata: MetaData
-    selectable: Selectable
-
-
-def build_view(view_params: ViewParams) -> TableClause:
-    """Create SQLAlchemy view
+def build_view(view_params: Dict) -> TableClause:
+    """Create SQLAlchemy view from dictionary with keys: name, metadata and
+    selectable
 
     Args:
-        view_params (ViewParams): ViewParams object
+        view_params (Dict): Dictionary with keys name, metadata, selectable
 
     Returns:
         TableClause: SQLAlchemy View
     """
-    return view(**view_params.__dict__)
+    return view(**view_params)
 
 
-def build_views(view_params_list: List[ViewParams]) -> List[TableClause]:
-    """Create SQLAlchemy views from a list of ViewParams objects
+def build_views(view_params_list: List[Dict]) -> List[TableClause]:
+    """Create SQLAlchemy views from a list of dictionaries with keys: name,
+    metadata and selectable
 
     Args:
-        view_params_list (List[ViewParams]): List of ViewParams objects
-
+        view_params_list (List[Dict]): List of dictionaries with view parameters
     Returns:
         List[TableClause]: SQLAlchemy Views
     """
