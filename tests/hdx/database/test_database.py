@@ -10,7 +10,7 @@ import pytest
 from sqlalchemy import select
 from sshtunnel import SSHTunnelForwarder
 
-from .dbtestdate import DBTestDate
+from .dbtestdate import DBTestDate, date_view
 from hdx.database import Database
 from hdx.database.no_timezone import Base as NoTZBase
 from hdx.database.with_timezone import Base as TZBase
@@ -94,6 +94,8 @@ class TestDatabase:
             dbsession.commit()
             dbtestdate = dbsession.execute(select(DBTestDate)).scalar_one()
             assert dbtestdate.test_date == now
+            dbtestdate = dbsession.execute(select(date_view)).scalar_one()
+            assert dbtestdate == now
 
     def test_get_reflect_session(self, database_to_reflect):
         with Database(

@@ -4,8 +4,11 @@ Create a DB View.
 Copied from:
 https://github.com/sqlalchemy/sqlalchemy/wiki/Views#sqlalchemy-14-20-version
 """
+from dataclasses import dataclass
+from typing import List
+
 import sqlalchemy as sa
-from sqlalchemy import MetaData, Select, TableClause
+from sqlalchemy import MetaData, Selectable, TableClause
 from sqlalchemy.ext import compiler
 from sqlalchemy.schema import DDLElement
 from sqlalchemy.sql import table
@@ -43,13 +46,13 @@ def view_doesnt_exist(ddl, target, connection, **kw):
     return not view_exists(ddl, target, connection, **kw)
 
 
-def view(name: str, metadata: MetaData, selectable: Select) -> TableClause:
+def view(name: str, metadata: MetaData, selectable: Selectable) -> TableClause:
     """Create SQLAlchemy view
 
     Args:
         name (str): View name
         metadata (MetaData): Base metadata
-        selectable (Select): SQLAlchemy select statement
+        selectable (Selectable): SQLAlchemy select statement
 
     Returns:
         TableClause: SQLAlchemy View
@@ -71,3 +74,39 @@ def view(name: str, metadata: MetaData, selectable: Select) -> TableClause:
         DropView(name).execute_if(callable_=view_exists),
     )
     return t
+
+
+@dataclass
+class ViewParams:
+    """Class for keeping view constructor parameters."""
+
+    name: str
+    metadata: MetaData
+    selectable: Selectable
+
+
+def build_view(view_params: ViewParams) -> TableClause:
+    """Create SQLAlchemy view
+
+    Args:
+        view_params (ViewParams): ViewParams object
+
+    Returns:
+        TableClause: SQLAlchemy View
+    """
+    return view(**view_params.__dict__)
+
+
+def build_views(view_params_list: List[ViewParams]) -> List[TableClause]:
+    """Create SQLAlchemy views from a list of ViewParams objects
+
+    Args:
+        view_params_list (List[ViewParams]): List of ViewParams objects
+
+    Returns:
+        List[TableClause]: SQLAlchemy Views
+    """
+    results = []
+    for view_params in view_params_list:
+        results.append(build_view(view_params))
+    return results
