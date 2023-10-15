@@ -25,10 +25,10 @@ class DBTestDate(Base):
         return f"<Test date={str(self.test_date)}>"
 
 
-date_view_params = dict(
-    name="date_view",
-    metadata=Base.metadata,
-    selectable=select(*DBTestDate.__table__.columns),
-)
+date_view_params = {
+    "name": "date_view",
+    "metadata": Base.metadata,
+    "selectable": select(*DBTestDate.__table__.columns),
+}
 
 date_view = build_views([date_view_params])[0]
