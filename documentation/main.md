@@ -135,6 +135,9 @@ org_type_view = view(
     selectable=select(*DBOrgType.__table__.columns),
 )
 
+class DBTestDate(Base):
+    test_date: Mapped[datetime] = mapped_column(primary_key=True)
+
 date_view_params = {
     "name": "date_view",
     "metadata": Base.metadata,
