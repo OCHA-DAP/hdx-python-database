@@ -134,6 +134,16 @@ org_type_view = view(
     metadata=Base.metadata,
     selectable=select(*DBOrgType.__table__.columns),
 )
+
+date_view_params = {
+    "name": "date_view",
+    "metadata": Base.metadata,
+    "selectable": select(*DBTestDate.__table__.columns),
+}
+
+date_view = build_view(date_view_params)
+
+date_view = build_views([date_view_params])[0]
 ```
 
 ## PostgreSQL specific
