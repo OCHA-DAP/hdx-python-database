@@ -140,3 +140,11 @@ class TestDatabase:
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
             assert TestDatabase.table_base == TZBase
+        with Database(
+            ssh_host="mysshhost", ssh_port=25, table_base=TZBase, **params
+        ) as dbsession:
+            assert (
+                str(dbsession.bind.engine.url)
+                == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
+            )
+            assert TestDatabase.table_base == TZBase

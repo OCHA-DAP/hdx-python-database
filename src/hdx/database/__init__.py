@@ -23,7 +23,7 @@ class Database:
     reflected classes. db_has_tz which defaults to False indicates whether
     database datetime columns have timezones. If not, conversion occurs between
     Python datetimes with timezones to timezoneless database columns (but not
-    when using reflection).
+    when using reflection). If table_base is supplied, db_has_tz is ignored.
 
     Args:
         database (Optional[str]): Database name
@@ -34,6 +34,7 @@ class Database:
         dialect (str): Database dialect. Defaults to "postgresql".
         driver (Optional[str]): Database driver. Defaults to None (psycopg if postgresql or None)
         db_has_tz (bool): True if db datetime columns have timezone. Defaults to False.
+        table_base (Optional[Type[DeclarativeBase]]): Override table base. Defaults to None.
         reflect (bool): Whether to reflect existing tables. Defaults to False.
         **kwargs: See below
         ssh_host (str): SSH host (the server to connect to)
@@ -55,6 +56,7 @@ class Database:
         dialect: str = "postgresql",
         driver: Optional[str] = None,
         db_has_tz: bool = False,
+        table_base: Optional[Type[DeclarativeBase]] = None,
         reflect: bool = False,
         **kwargs: Any,
     ) -> None:
@@ -98,10 +100,11 @@ class Database:
         )
         if dialect == "postgresql":
             wait_for_postgresql(db_uri)
-        if db_has_tz:
-            table_base = TZBase
-        else:
-            table_base = NoTZBase
+        if not table_base:
+            if db_has_tz:
+                table_base = TZBase
+            else:
+                table_base = NoTZBase
         self.session = self.get_session(
             db_uri, table_base=table_base, reflect=reflect
         )
