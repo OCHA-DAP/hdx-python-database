@@ -4,6 +4,7 @@ Create a DB View.
 Copied from:
 https://github.com/sqlalchemy/sqlalchemy/wiki/Views#sqlalchemy-14-20-version
 """
+
 from typing import Dict, List
 
 import sqlalchemy as sa

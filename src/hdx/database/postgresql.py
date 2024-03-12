@@ -1,4 +1,5 @@
 """PostgreSQL specific utilities"""
+
 import logging
 import time
 

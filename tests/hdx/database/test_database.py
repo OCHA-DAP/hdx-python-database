@@ -1,4 +1,5 @@
 """Database Utility Tests"""
+
 from collections import namedtuple
 from copy import deepcopy
 from datetime import datetime, timezone

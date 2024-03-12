@@ -1,4 +1,5 @@
 """Utilities for database datetime columns without timezone"""
+
 from datetime import datetime, timezone
 from typing import Optional
 

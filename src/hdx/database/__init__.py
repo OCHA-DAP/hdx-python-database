@@ -1,4 +1,5 @@
 """Database utilities"""
+
 import logging
 from typing import Any, Optional, Type, Union
 
