@@ -51,8 +51,13 @@ Versions from 1.0.6 no longer support Python 2.7.
 
 ## Database
 
+A fresh schema can be created using the function `recreate_schema`. Any 
+existing schema with that name will be dropped eg. 
+
+    recreate_schema(engine, db_uri)
+
 Your SQLAlchemy database tables must inherit from `Base` in
-`hdx.database.no_timezone` or `hdx.database.with_timezone` eg. :
+`hdx.database.no_timezone` or `hdx.database.with_timezone` eg.
 
     from hdx.database.no_timezone import Base
     class MyTable(Base):

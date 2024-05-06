@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sshtunnel import SSHTunnelForwarder
 
 from .dbtestdate import DBTestDate, date_view
-from hdx.database import Database
+from hdx.database import Database, recreate_schema
 from hdx.database.no_timezone import Base as NoTZBase
 from hdx.database.with_timezone import Base as TZBase
 
@@ -143,7 +143,7 @@ class TestDatabase:
         self, mock_psycopg, mock_SSHTunnelForwarder, mock_engine
     ):
         db_uri = "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
-        Database.recreate_schema(mock_engine, db_uri)
+        recreate_schema(mock_engine, db_uri)
         with Database(
             ssh_host="mysshhost", **TestDatabase.params_pg
         ) as dbsession:

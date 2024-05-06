@@ -18,6 +18,29 @@ from .with_timezone import Base as TZBase
 logger = logging.getLogger(__name__)
 
 
+def recreate_schema(
+    engine: Engine, db_uri: str, schema_name: str = "public"
+) -> None:
+    """Wipe and create empty schema in database using SQLAlchemy.
+
+    Args:
+        engine (Engine): SQLAlchemy engine to use.
+        db_uri (str): Connection URI
+        schema_name (str): Schema name. Defaults to "public".
+
+    Returns:
+        None
+    """
+    # Wipe and create an empty schema
+    with engine.connect() as connection:
+        connection.execute(
+            DropSchema(schema_name, cascade=True, if_exists=True)
+        )
+        connection.commit()
+        connection.execute(CreateSchema(schema_name, if_not_exists=True))
+        connection.commit()
+
+
 class Database:
     """Database helper class to handle ssh tunnels, waiting for PostgreSQL to
     be up etc. Can be used in a with statement returning a Session object that
@@ -155,26 +178,3 @@ class Database:
         session = Session()
         session.reflected_classes = classes
         return session
-
-    @staticmethod
-    def recreate_schema(
-        engine: Engine, db_uri: str, schema_name: str = "public"
-    ) -> None:
-        """Wipe and create empty schema in database using SQLAlchemy.
-
-        Args:
-            engine (Engine): SQLAlchemy engine to use.
-            db_uri (str): Connection URI
-            schema_name (str): Schema name. Defaults to "public".
-
-        Returns:
-            None
-        """
-        # Wipe and create an empty schema
-        with engine.connect() as connection:
-            connection.execute(
-                DropSchema(schema_name, cascade=True, if_exists=True)
-            )
-            connection.commit()
-            connection.execute(CreateSchema(schema_name, if_not_exists=True))
-            connection.commit()
