@@ -3,10 +3,11 @@
 import logging
 from typing import Any, Optional, Type, Union
 
-from sqlalchemy import create_engine
+from sqlalchemy import Engine, create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import NullPool
+from sqlalchemy.sql.ddl import CreateSchema, DropSchema
 
 from ._version import version as __version__  # noqa: F401
 from .dburi import get_connection_uri
@@ -123,6 +124,7 @@ class Database:
         db_uri: str,
         table_base: Type[DeclarativeBase] = NoTZBase,
         reflect: bool = False,
+        engine: Engine = None,
     ) -> Session:
         """Gets SQLAlchemy session given url. Tables must inherit from Base in
         hdx.utilities.database unless base is defined. If reflect is True,
@@ -135,11 +137,13 @@ class Database:
             db_uri (str): Connection URI
             table_base (Type[DeclarativeBase]): Base database table class. Defaults to NoTZBase.
             reflect (bool): Whether to reflect existing tables. Defaults to False.
+            engine (Engine): SQLAlchemy engine to use. Defaults to None (create engine).
 
         Returns:
             sqlalchemy.orm.Session: SQLAlchemy session
         """
-        engine = create_engine(db_uri, poolclass=NullPool, echo=False)
+        if not engine:
+            engine = create_engine(db_uri, poolclass=NullPool, echo=False)
         Session = sessionmaker(bind=engine)
         if reflect:
             Base = automap_base(declarative_base=table_base)
@@ -151,3 +155,26 @@ class Database:
         session = Session()
         session.reflected_classes = classes
         return session
+
+    @staticmethod
+    def recreate_schema(
+        engine: Engine, db_uri: str, schema_name: str = "public"
+    ) -> None:
+        """Wipe and create empty schema in database using SQLAlchemy.
+
+        Args:
+            engine (Engine): SQLAlchemy engine to use.
+            db_uri (str): Connection URI
+            schema_name (str): Schema name. Defaults to "public".
+
+        Returns:
+            None
+        """
+        # Wipe and create an empty schema
+        with engine.connect() as connection:
+            connection.execute(
+                DropSchema(schema_name, cascade=True, if_exists=True)
+            )
+            connection.commit()
+            connection.execute(CreateSchema(schema_name, if_not_exists=True))
+            connection.commit()

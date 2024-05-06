@@ -9,12 +9,12 @@ def mock_psycopg(monkeypatch):
     def connect(*args, **kwargs):
         if PsycopgConnection.connected:
 
-            class Connection:
+            class PGConnection:
                 @staticmethod
                 def close():
                     return
 
-            return Connection()
+            return PGConnection()
         else:
             PsycopgConnection.connected = True
             raise psycopg.OperationalError

@@ -81,6 +81,30 @@ class TestDatabase:
 
         monkeypatch.setattr(Database, "get_session", get_session)
 
+    @pytest.fixture(scope="function")
+    def mock_engine(self):
+        class SQAConnection:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc_value, traceback) -> None:
+                pass
+
+            @staticmethod
+            def execute(_):
+                return
+
+            @staticmethod
+            def commit():
+                return
+
+        class MockEngine:
+            @staticmethod
+            def connect():
+                return SQAConnection()
+
+        return MockEngine()
+
     def test_get_session(self, nodatabase):
         assert DBTestDate.__tablename__ == "db_test_date"
         with Database(
@@ -115,14 +139,15 @@ class TestDatabase:
             # we don't have a timezone here
             assert row.date1 == datetime(1993, 9, 23, 14, 12, 56, 111000)
 
-    def test_get_session_ssh(self, mock_psycopg, mock_SSHTunnelForwarder):
+    def test_get_session_ssh(
+        self, mock_psycopg, mock_SSHTunnelForwarder, mock_engine
+    ):
+        db_uri = "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
+        Database.recreate_schema(mock_engine, db_uri)
         with Database(
             ssh_host="mysshhost", **TestDatabase.params_pg
         ) as dbsession:
-            assert (
-                str(dbsession.bind.engine.url)
-                == "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
-            )
+            assert str(dbsession.bind.engine.url) == db_uri
         params = deepcopy(TestDatabase.params_pg)
         del params["password"]
         with Database(
