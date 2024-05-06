@@ -145,7 +145,7 @@ URI that contains both dialect and driver.
 
 The method to prepare views described [here](https://github.com/sqlalchemy/sqlalchemy/wiki/Views#sqlalchemy-14-20-version) is available in this library.
 
-This allows creating views like this:
+This allows preparing views like this:
 ```
 class DBOrgType(Base):
     __tablename__ = "org_type"
@@ -173,6 +173,8 @@ date_view = Database.prepare_view(date_view_params)
 
 date_view = Database.prepare_views([date_view_params])[0]
 ```
+
+View preparation must be done before calling Base.metadata.create_all.
 
 ## PostgreSQL specific
 
