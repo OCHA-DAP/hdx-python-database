@@ -62,6 +62,8 @@ def get_connection_uri(
     Returns:
         str: Connection URI
     """
+    if not database:
+        return ""
     strings = [dialect]
     if include_driver:
         if dialect == "postgresql" and driver is None:

@@ -1,11 +1,10 @@
 """
-Create a DB View.
+Prepare database views ins SQLAlchemy. Must be run before calling
+Base.metadata.create_all.
 
 Copied from:
 https://github.com/sqlalchemy/sqlalchemy/wiki/Views#sqlalchemy-14-20-version
 """
-
-from typing import Dict, List
 
 import sqlalchemy as sa
 from sqlalchemy import MetaData, Selectable, TableClause
@@ -47,7 +46,7 @@ def view_doesnt_exist(ddl, target, connection, **kw):
 
 
 def view(name: str, metadata: MetaData, selectable: Selectable) -> TableClause:
-    """Create SQLAlchemy view
+    """Prepare SQLAlchemy view. Must be run before Base.metadata.create_all.
 
     Args:
         name (str): View name
@@ -74,31 +73,3 @@ def view(name: str, metadata: MetaData, selectable: Selectable) -> TableClause:
         DropView(name).execute_if(callable_=view_exists),
     )
     return t
-
-
-def build_view(view_params: Dict) -> TableClause:
-    """Create SQLAlchemy view from dictionary with keys: name, metadata and
-    selectable
-
-    Args:
-        view_params (Dict): Dictionary with keys name, metadata, selectable
-
-    Returns:
-        TableClause: SQLAlchemy View
-    """
-    return view(**view_params)
-
-
-def build_views(view_params_list: List[Dict]) -> List[TableClause]:
-    """Create SQLAlchemy views from a list of dictionaries with keys: name,
-    metadata and selectable
-
-    Args:
-        view_params_list (List[Dict]): List of dictionaries with view parameters
-    Returns:
-        List[TableClause]: SQLAlchemy Views
-    """
-    results = []
-    for view_params in view_params_list:
-        results.append(build_view(view_params))
-    return results

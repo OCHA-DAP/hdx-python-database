@@ -1,6 +1,5 @@
 """Database Utility Tests"""
 
-from collections import namedtuple
 from copy import deepcopy
 from datetime import datetime, timezone
 from os import remove
@@ -9,10 +8,9 @@ from shutil import copyfile
 
 import pytest
 from sqlalchemy import select
-from sshtunnel import SSHTunnelForwarder
 
-from .dbtestdate import DBTestDate, date_view
-from hdx.database import Database, recreate_schema
+from .dbtestdate import DBTestDate, date_view_params
+from hdx.database import Database, DatabaseError
 from hdx.database.no_timezone import Base as NoTZBase
 from hdx.database.with_timezone import Base as TZBase
 
@@ -50,66 +48,19 @@ class TestDatabase:
             pass
         return f"sqlite:///{TestDatabase.dbpath}"
 
-    @pytest.fixture(scope="function")
-    def mock_SSHTunnelForwarder(self, monkeypatch):
-        def init(*args, **kwargs):
-            return None
-
-        def start(_):
-            TestDatabase.started = True
-
-        def stop(_):
-            TestDatabase.stopped = True
-
-        monkeypatch.setattr(SSHTunnelForwarder, "__init__", init)
-        monkeypatch.setattr(SSHTunnelForwarder, "start", start)
-        monkeypatch.setattr(SSHTunnelForwarder, "stop", stop)
-        monkeypatch.setattr(SSHTunnelForwarder, "local_bind_host", "0.0.0.0")
-        monkeypatch.setattr(SSHTunnelForwarder, "local_bind_port", 12345)
-
-        def get_session(_, db_url, table_base, reflect):
-            class Session:
-                bind = namedtuple("Bind", "engine")
-
-                def close(self):
-                    return None
-
-            Session.bind.engine = namedtuple("Engine", "url")
-            Session.bind.engine.url = db_url
-            TestDatabase.table_base = table_base
-            return Session()
-
-        monkeypatch.setattr(Database, "get_session", get_session)
-
-    @pytest.fixture(scope="function")
-    def mock_engine(self):
-        class SQAConnection:
-            def __enter__(self):
-                return self
-
-            def __exit__(self, exc_type, exc_value, traceback) -> None:
-                pass
-
-            @staticmethod
-            def execute(_):
-                return
-
-            @staticmethod
-            def commit():
-                return
-
-        class MockEngine:
-            @staticmethod
-            def connect():
-                return SQAConnection()
-
-        return MockEngine()
-
     def test_get_session(self, nodatabase):
         assert DBTestDate.__tablename__ == "db_test_date"
+
+        def prepare_fn():
+            return Database.prepare_views([date_view_params])
+
         with Database(
-            database=TestDatabase.dbpath, port=None, dialect="sqlite"
-        ) as dbsession:
+            database=TestDatabase.dbpath,
+            port=None,
+            dialect="sqlite",
+            prepare_fn=prepare_fn,
+        ) as dbdatabase:
+            dbsession = dbdatabase.session
             assert str(dbsession.bind.engine.url) == nodatabase
             assert TestDatabase.table_base == NoTZBase
             now = datetime(2022, 10, 20, 22, 35, 55, tzinfo=timezone.utc)
@@ -119,8 +70,14 @@ class TestDatabase:
             dbsession.commit()
             dbtestdate = dbsession.execute(select(DBTestDate)).scalar_one()
             assert dbtestdate.test_date == now
+            date_view = dbdatabase.get_prepare_results()[0]
             dbtestdate = dbsession.execute(select(date_view)).scalar_one()
             assert dbtestdate == now
+        with pytest.raises(DatabaseError):
+            Database.create_session()
+        with pytest.raises(DatabaseError):
+            with Database():
+                pass
 
     def test_get_reflect_session(self, database_to_reflect):
         with Database(
@@ -128,10 +85,11 @@ class TestDatabase:
             port=None,
             dialect="sqlite",
             reflect=True,
-        ) as dbsession:
+        ) as dbdatabase:
+            dbsession = dbdatabase.get_session()
             assert TestDatabase.table_base == NoTZBase
             assert str(dbsession.bind.engine.url) == database_to_reflect
-            Table1 = dbsession.reflected_classes.table1
+            Table1 = dbdatabase.get_reflected_classes().table1
             row = dbsession.execute(select(Table1)).scalar_one()
             assert row.id == "1"
             assert row.col1 == "wfrefds"
@@ -140,19 +98,24 @@ class TestDatabase:
             assert row.date1 == datetime(1993, 9, 23, 14, 12, 56, 111000)
 
     def test_get_session_ssh(
-        self, mock_psycopg, mock_SSHTunnelForwarder, mock_engine
+        self,
+        mock_psycopg,
+        mock_SSHTunnelForwarder,
     ):
-        db_uri = "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
-        recreate_schema(mock_engine, db_uri)
         with Database(
             ssh_host="mysshhost", **TestDatabase.params_pg
-        ) as dbsession:
-            assert str(dbsession.bind.engine.url) == db_uri
+        ) as dbdatabase:
+            dbsession = dbdatabase.get_session()
+            assert (
+                str(dbsession.bind.engine.url)
+                == "postgresql+psycopg://myuser:***@0.0.0.0:12345/mydatabase"
+            )
         params = deepcopy(TestDatabase.params_pg)
         del params["password"]
         with Database(
             ssh_host="mysshhost", ssh_port=25, **params
-        ) as dbsession:
+        ) as dbdatabase:
+            dbsession = dbdatabase.get_session()
             assert (
                 str(dbsession.bind.engine.url)
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
@@ -160,7 +123,8 @@ class TestDatabase:
         assert TestDatabase.table_base == NoTZBase
         with Database(
             ssh_host="mysshhost", ssh_port=25, db_has_tz=True, **params
-        ) as dbsession:
+        ) as dbdatabase:
+            dbsession = dbdatabase.get_session()
             assert (
                 str(dbsession.bind.engine.url)
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
@@ -168,9 +132,16 @@ class TestDatabase:
             assert TestDatabase.table_base == TZBase
         with Database(
             ssh_host="mysshhost", ssh_port=25, table_base=TZBase, **params
-        ) as dbsession:
+        ) as dbdatabase:
+            dbsession = dbdatabase.get_session()
             assert (
                 str(dbsession.bind.engine.url)
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
             assert TestDatabase.table_base == TZBase
+
+    def test_recreate_schema(self, mock_engine):
+        db_uri = "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
+        assert Database.recreate_schema(mock_engine, db_uri) is True
+        db_uri = "Error"
+        assert Database.recreate_schema(mock_engine, db_uri) is False

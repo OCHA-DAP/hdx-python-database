@@ -6,7 +6,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from hdx.database.no_timezone import Base
-from hdx.database.views import build_views
 
 
 class DBTestDate(Base):
@@ -30,5 +29,3 @@ date_view_params = {
     "metadata": Base.metadata,
     "selectable": select(*DBTestDate.__table__.columns),
 }
-
-date_view = build_views([date_view_params])[0]

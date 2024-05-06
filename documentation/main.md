@@ -22,6 +22,13 @@ installed with extra `postgresql`:
     pip install hdx-python-database[postgresql]
 
 ## Breaking changes
+From 1.3.1, Database class refactored. With returns Database not Session
+object and can accept a prepare function called before
+Base.metadata.create_all. get_session can be used to obtain the session.
+get_reflected_classes, get_prepare_results methods added. build_view,
+build_views move into Database class and renamed prepare_view and
+prepare_views.
+
 From 1.2.8, the sshtunnel dependency is optional.
 
 From 1.2.7, default table names are no longer plural. The camel case class name
@@ -51,10 +58,10 @@ Versions from 1.0.6 no longer support Python 2.7.
 
 ## Database
 
-A fresh schema can be created using the function `recreate_schema`. Any 
-existing schema with that name will be dropped eg. 
+A fresh schema can be created using the function `recreate_schema`. Any
+existing schema with that name will be dropped eg.
 
-    recreate_schema(engine, db_uri)
+    Database.recreate_schema(engine, db_uri)
 
 Your SQLAlchemy database tables must inherit from `Base` in
 `hdx.database.no_timezone` or `hdx.database.with_timezone` eg.
@@ -75,9 +82,13 @@ tunnel (which requires installing `hdx-python-database[sshtunnel]`):
     from hdx.database import Database
     with Database(database="db", host="1.2.3.4", username="user",
                   password="pass", dialect="dialect", driver="driver",
+
                   ssh_host="5.6.7.8", ssh_port=2222, ssh_username="sshuser",
                   ssh_private_key="path_to_key", db_has_tz=True,
-                  reflect=False) as session:
+                  reflect=True, prepare_fn=prepare_views) as database:
+        session = database.get_session()
+        reflected_classes = database.get_reflected_classes()
+        views = database.get_prepare_results()
         session.query(...)
 
 `db_has_tz` which defaults to `False` indicates whether database datetime
@@ -88,10 +99,19 @@ between Python datetimes with timezones to timezoneless database columns.
 
 If `reflect` (which defaults to `False`) is `True`, classes will be reflected
 from an existing database and the reflected classes are returned in a variable
-`reflected_classes` in the returned Session object. Note that type annotation
+`reflected_classes` in the Database object. Note that type annotation
 maps don't work with reflection and hence `db_has_tz` will be ignored ie.
 there will be no conversion between Python datetimes with timezones to
 timezoneless database columns.
+
+There is an option to wipe and create an empty schema in the database by
+setting `recreate_schema` to `True` and setting a `schema_name` ("public" is
+the default).
+
+If a prepare function is supplied in prepare_fn, it will be executed before
+Base.metadata.create_all and the results of it returned in instance variable
+prepare_results.
+
 
 ## Connection URI
 
@@ -122,8 +142,7 @@ URI that contains both dialect and driver.
 
 ## Views
 
-The method to make views described [here](https://github.com/sqlalchemy/sqlalchemy/wiki/Views#sqlalchemy-14-20-version)
-is available in this library.
+The method to prepare views described [here](https://github.com/sqlalchemy/sqlalchemy/wiki/Views#sqlalchemy-14-20-version) is available in this library.
 
 This allows creating views like this:
 ```
@@ -149,9 +168,9 @@ date_view_params = {
     "selectable": select(*DBTestDate.__table__.columns),
 }
 
-date_view = build_view(date_view_params)
+date_view = Database.prepare_view(date_view_params)
 
-date_view = build_views([date_view_params])[0]
+date_view = Database.prepare_views([date_view_params])[0]
 ```
 
 ## PostgreSQL specific
