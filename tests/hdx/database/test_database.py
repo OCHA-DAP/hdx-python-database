@@ -86,6 +86,8 @@ class TestDatabase:
             dialect="sqlite",
             reflect=True,
         ) as dbdatabase:
+            dbengine = dbdatabase.get_engine()
+            assert str(dbengine.url) == "sqlite:///tests/test_database.db"
             dbsession = dbdatabase.get_session()
             assert TestDatabase.table_base == NoTZBase
             assert str(dbsession.bind.engine.url) == database_to_reflect

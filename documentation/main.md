@@ -25,8 +25,8 @@ installed with extra `postgresql`:
 From 1.3.1, Database class refactored. With returns Database not Session
 object and can accept a prepare function called before
 Base.metadata.create_all. get_session can be used to obtain the session.
-get_reflected_classes, get_prepare_results methods added. build_view,
-build_views move into Database class and renamed prepare_view and
+get_engine, get_reflected_classes, get_prepare_results methods added.
+build_view, build_views move into Database class and renamed prepare_view and
 prepare_views.
 
 From 1.2.8, the sshtunnel dependency is optional.
@@ -86,6 +86,7 @@ tunnel (which requires installing `hdx-python-database[sshtunnel]`):
                   ssh_host="5.6.7.8", ssh_port=2222, ssh_username="sshuser",
                   ssh_private_key="path_to_key", db_has_tz=True,
                   reflect=True, prepare_fn=prepare_views) as database:
+        engine = database.get_engine()
         session = database.get_session()
         reflected_classes = database.get_reflected_classes()
         views = database.get_prepare_results()

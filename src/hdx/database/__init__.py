@@ -151,6 +151,7 @@ class Database:
                 table_base = NoTZBase
         if not engine:
             engine = create_engine(db_uri, poolclass=NullPool, echo=False)
+        self.engine: Engine = engine
         if recreate_schema:
             self.recreate_schema(engine, schema_name)
         self.prepare_results = prepare_fn()
@@ -167,6 +168,14 @@ class Database:
         self.session.close()
         if self.server is not None:
             self.server.stop()
+
+    def get_engine(self) -> Engine:
+        """Returns SQLAlchemy engine.
+
+        Returns:
+            sqlalchemy.Engine: SQLAlchemy engine
+        """
+        return self.engine
 
     def get_session(self) -> Session:
         """Returns SQLAlchemy session.
