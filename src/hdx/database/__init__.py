@@ -1,6 +1,7 @@
 """Database utilities"""
 
 import logging
+import subprocess
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from sqlalchemy import Engine, TableClause, create_engine
@@ -41,6 +42,9 @@ class Database:
     with timezones to timezoneless database columns (but not when using
     reflection). If table_base is supplied, db_has_tz is ignored.
 
+    The database can be restored from a given pg_restore file supplied in the
+    parameter pg_restore_file.
+
     There is an option to wipe and create an empty schema in the database by
     setting recreate_schema to True and setting a schema_name ("public" is the
     default).
@@ -63,6 +67,7 @@ class Database:
         table_base (Optional[Type[DeclarativeBase]]): Override table base. Defaults to None.
         reflect (bool): Whether to reflect existing tables. Defaults to False.
         **kwargs: See below
+        pg_restore_file (str): Restore database from pg_restore file
         recreate_schema (bool): Whether to recreate schema
         schema_name (str): Database schema name. Defaults to "public".
         prepare_fn (Callable[[], None]]): Function to call before Base.metadata.create_all.
@@ -95,9 +100,11 @@ class Database:
             port = int(port)
         schema_name = None
         if len(kwargs) == 0:
+            pg_restore_file = None
             recreate_schema = False
             prepare_fn = do_nothing_fn
         else:
+            pg_restore_file = kwargs.pop("pg_restore_file", None)
             recreate_schema = kwargs.pop("recreate_schema", False)
             schema_name = kwargs.pop("schema", "public")
             prepare_fn = kwargs.pop("prepare_fn", do_nothing_fn)
@@ -144,6 +151,8 @@ class Database:
                 )
         if not engine and dialect == "postgresql":
             wait_for_postgresql(db_uri)
+        if pg_restore_file and db_uri:
+            self.restore_from_pgfile(db_uri, pg_restore_file)
         if not table_base:
             if db_has_tz:
                 table_base = TZBase
@@ -285,6 +294,7 @@ class Database:
 
         Args:
             view_params_list (List[Dict]): List of dictionaries with view parameters
+
         Returns:
             List[TableClause]: SQLAlchemy Views
         """
@@ -292,3 +302,30 @@ class Database:
         for view_params in view_params_list:
             results.append(cls.prepare_view(view_params))
         return results
+
+    @staticmethod
+    def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> None:
+        """Restore database from a pg_restore file created by pg_backup.
+
+        Args:
+            db_uri (str): Connection URI.
+            pg_restore_file (str): Path to the pg_restore database file
+
+        Returns:
+            None
+        """
+        subprocess_params = ["pg_restore", "--no-owner", f"--dbname={db_uri}"]
+
+        subprocess_params.append(pg_restore_file)
+        process = subprocess.Popen(subprocess_params, stdout=subprocess.PIPE)
+        output = process.communicate()[0]
+
+        if int(process.returncode) != 0:
+            command = " ".join(subprocess_params)
+            raise DatabaseError(
+                f"{command} failed. Return code: {process.returncode}"
+            )
+
+        for line in output.splitlines():
+            logger.info(line)
+        return output

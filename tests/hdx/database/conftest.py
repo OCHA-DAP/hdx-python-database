@@ -1,3 +1,4 @@
+import subprocess
 from collections import namedtuple
 
 import psycopg
@@ -84,3 +85,18 @@ def mock_engine():
             return SQAConnection()
 
     return MockEngine()
+
+
+@pytest.fixture(scope="function")
+def mock_subprocess(monkeypatch):
+    class SubProcess:
+        returncode = 0
+
+        @staticmethod
+        def communicate():
+            return ["WORKED!"]
+
+    def Popen(*args, **kwargs):
+        return SubProcess()
+
+    monkeypatch.setattr(subprocess, "Popen", Popen)
