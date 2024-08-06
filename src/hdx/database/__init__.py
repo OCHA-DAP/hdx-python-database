@@ -328,7 +328,7 @@ class Database:
                 case "username":
                     subprocess_params.append(f"-U {value}")
 
-        subprocess_params.append(f"-f {pg_restore_file}")
+        subprocess_params.append(f"{pg_restore_file}")
         env = environ.copy()
         password = db_params.get("password")
         if password:
