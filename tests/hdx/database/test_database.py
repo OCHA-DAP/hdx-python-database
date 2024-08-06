@@ -78,6 +78,7 @@ class TestDatabase:
         with pytest.raises(DatabaseError):
             with Database():
                 pass
+        NoTZBase.metadata.clear()
 
     def test_get_reflect_session(self, database_to_reflect):
         with Database(
@@ -98,6 +99,7 @@ class TestDatabase:
             # with reflection, type annotation maps do not work and hence
             # we don't have a timezone here
             assert row.date1 == datetime(1993, 9, 23, 14, 12, 56, 111000)
+            NoTZBase.metadata.clear()
 
     def test_get_session_ssh(
         self,
@@ -124,6 +126,7 @@ class TestDatabase:
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
             assert TestDatabase.table_base == TZBase
+            TZBase.metadata.clear()
         with Database(
             ssh_host="mysshhost", **TestDatabase.params_pg
         ) as dbdatabase:
@@ -132,6 +135,7 @@ class TestDatabase:
                 str(dbsession.bind.engine.url)
                 == "postgresql+psycopg://myuser:***@0.0.0.0:12345/mydatabase"
             )
+            assert TestDatabase.table_base == NoTZBase
         with Database(
             ssh_host="mysshhost", ssh_port=25, **params
         ) as dbdatabase:
@@ -141,6 +145,7 @@ class TestDatabase:
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
             assert TestDatabase.table_base == NoTZBase
+            NoTZBase.metadata.clear()
 
     def test_recreate_schema(self, mock_engine):
         db_uri = "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
