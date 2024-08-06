@@ -104,25 +104,8 @@ class TestDatabase:
         mock_psycopg,
         mock_SSHTunnelForwarder,
     ):
-        with Database(
-            ssh_host="mysshhost", **TestDatabase.params_pg
-        ) as dbdatabase:
-            dbsession = dbdatabase.get_session()
-            assert (
-                str(dbsession.bind.engine.url)
-                == "postgresql+psycopg://myuser:***@0.0.0.0:12345/mydatabase"
-            )
         params = deepcopy(TestDatabase.params_pg)
         del params["password"]
-        with Database(
-            ssh_host="mysshhost", ssh_port=25, **params
-        ) as dbdatabase:
-            dbsession = dbdatabase.get_session()
-            assert (
-                str(dbsession.bind.engine.url)
-                == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
-            )
-        assert TestDatabase.table_base == NoTZBase
         with Database(
             ssh_host="mysshhost", ssh_port=25, db_has_tz=True, **params
         ) as dbdatabase:
@@ -141,6 +124,23 @@ class TestDatabase:
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
             assert TestDatabase.table_base == TZBase
+        with Database(
+            ssh_host="mysshhost", **TestDatabase.params_pg
+        ) as dbdatabase:
+            dbsession = dbdatabase.get_session()
+            assert (
+                str(dbsession.bind.engine.url)
+                == "postgresql+psycopg://myuser:***@0.0.0.0:12345/mydatabase"
+            )
+        with Database(
+            ssh_host="mysshhost", ssh_port=25, **params
+        ) as dbdatabase:
+            dbsession = dbdatabase.get_session()
+            assert (
+                str(dbsession.bind.engine.url)
+                == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
+            )
+            assert TestDatabase.table_base == NoTZBase
 
     def test_recreate_schema(self, mock_engine):
         db_uri = "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
