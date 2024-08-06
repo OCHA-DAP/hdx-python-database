@@ -152,16 +152,3 @@ class TestDatabase:
         assert Database.recreate_schema(mock_engine, db_uri) is True
         db_uri = "Error"
         assert Database.recreate_schema(mock_engine, db_uri) is False
-
-    def test_restore_from_pgfile(self, mock_subprocess, mock_engine):
-        db_uri = "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
-        pg_restore_file = "test.pg_restore"
-        assert (
-            Database.restore_from_pgfile(db_uri, pg_restore_file) == "WORKED!"
-        )
-
-    def test_restore_from_pgfile_raises(self):
-        db_uri = "postgresql+psycopg://myuser:mypass@0.0.0.0:12345/mydatabase"
-        pg_restore_file = "NOT_EXIST.pg_restore"
-        with pytest.raises(DatabaseError):
-            Database.restore_from_pgfile(db_uri, pg_restore_file)

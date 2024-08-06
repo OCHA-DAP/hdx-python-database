@@ -1,8 +1,6 @@
 """Database utilities"""
 
 import logging
-import subprocess
-from os import environ
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from sqlalchemy import Engine, TableClause, create_engine
@@ -14,9 +12,9 @@ from sqlalchemy.sql.ddl import CreateSchema, DropSchema
 from sqlalchemy.util import Properties
 
 from ._version import version as __version__  # noqa: F401
-from .dburi import get_connection_uri, get_params_from_connection_uri
+from .dburi import get_connection_uri
 from .no_timezone import Base as NoTZBase
-from .postgresql import wait_for_postgresql
+from .postgresql import restore_from_pgfile, wait_for_postgresql
 from .views import view
 from .with_timezone import Base as TZBase
 
@@ -153,7 +151,7 @@ class Database:
         if not engine and dialect == "postgresql":
             wait_for_postgresql(db_uri)
         if pg_restore_file and db_uri:
-            self.restore_from_pgfile(db_uri, pg_restore_file)
+            restore_from_pgfile(db_uri, pg_restore_file)
         if not table_base:
             if db_has_tz:
                 table_base = TZBase
@@ -303,50 +301,3 @@ class Database:
         for view_params in view_params_list:
             results.append(cls.prepare_view(view_params))
         return results
-
-    @staticmethod
-    def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
-        """Restore database from a pg_restore file created by pg_backup.
-
-        Args:
-            db_uri (str): Connection URI.
-            pg_restore_file (str): Path to the pg_restore database file
-
-        Returns:
-            None
-        """
-        db_params = get_params_from_connection_uri(db_uri)
-        subprocess_params = ["pg_restore", "-c"]
-        for key, value in db_params.items():
-            match key:
-                case "database":
-                    subprocess_params.append("-d")
-                case "host":
-                    subprocess_params.append("-h")
-                case "port":
-                    subprocess_params.append("-p")
-                case "username":
-                    subprocess_params.append("-U")
-                case _:
-                    continue
-            subprocess_params.append(f"{value}")
-
-        subprocess_params.append(f"{pg_restore_file}")
-        env = environ.copy()
-        password = db_params.get("password")
-        if password:
-            env["PGPASSWORD"] = password
-        process = subprocess.run(
-            subprocess_params, env=env, capture_output=True, encoding="utf-8"
-        )
-        try:
-            process.check_returncode()
-        except subprocess.CalledProcessError as ex:
-            command = " ".join(subprocess_params)
-            raise DatabaseError(
-                f"{command} failed. Return code: {process.returncode}"
-            ) from ex
-
-        for line in process.stdout.splitlines():
-            logger.info(line)
-        return process.stdout
