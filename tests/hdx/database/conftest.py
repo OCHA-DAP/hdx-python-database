@@ -89,14 +89,14 @@ def mock_engine():
 
 @pytest.fixture(scope="function")
 def mock_subprocess(monkeypatch):
-    class SubProcess:
-        returncode = 0
+    class CompletedProcess:
+        stdout = "WORKED!"
 
         @staticmethod
-        def communicate():
-            return ["WORKED!"]
+        def check_returncode():
+            return
 
-    def Popen(*args, **kwargs):
-        return SubProcess()
+    def run(*args, **kwargs):
+        return CompletedProcess()
 
-    monkeypatch.setattr(subprocess, "Popen", Popen)
+    monkeypatch.setattr(subprocess, "run", run)
