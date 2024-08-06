@@ -316,7 +316,7 @@ class Database:
             None
         """
         db_params = get_params_from_connection_uri(db_uri)
-        subprocess_params = ["pg_restore"]
+        subprocess_params = ["pg_restore", "-c"]
         for key, value in db_params.items():
             match key:
                 case "database":
