@@ -320,13 +320,16 @@ class Database:
         for key, value in db_params.items():
             match key:
                 case "database":
-                    subprocess_params.append(f"-d {value}")
+                    subprocess_params.append("-d")
                 case "host":
-                    subprocess_params.append(f"-h {value}")
+                    subprocess_params.append("-h")
                 case "port":
-                    subprocess_params.append(f"-p {value}")
+                    subprocess_params.append("-p")
                 case "username":
-                    subprocess_params.append(f"-U {value}")
+                    subprocess_params.append("-U")
+                case _:
+                    continue
+            subprocess_params.append(f"{value}")
 
         subprocess_params.append(f"{pg_restore_file}")
         env = environ.copy()
