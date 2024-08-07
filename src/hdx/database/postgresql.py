@@ -48,14 +48,15 @@ def wait_for_postgresql(db_uri: str) -> None:
 
 
 def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
-    """Restore database from a pg_restore file created by pg_backup.
+    """Restore database from a pg_restore file created by pg_backup using the
+    pg_restore command.
 
     Args:
-        db_uri (str): Connection URI.
+        db_uri (str): Connection URI
         pg_restore_file (str): Path to the pg_restore database file
 
     Returns:
-        None
+        str: Output from the pg_restore command
     """
     db_params = get_params_from_connection_uri(db_uri)
     subprocess_params = ["pg_restore", "-c"]

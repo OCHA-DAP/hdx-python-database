@@ -2,7 +2,7 @@
 #    uv pip compile pyproject.toml --resolver=backtracking --all-extras -o requirements.txt
 bcrypt==4.2.0
     # via paramiko
-cffi==1.16.0
+cffi==1.17.0
     # via
     #   cryptography
     #   pynacl
@@ -48,7 +48,7 @@ pytest==8.3.2
     #   pytest-cov
 pytest-cov==5.0.0
     # via hdx-python-database (pyproject.toml)
-pyyaml==6.0.1
+pyyaml==6.0.2
     # via pre-commit
 sqlalchemy==2.0.32
     # via hdx-python-database (pyproject.toml)
