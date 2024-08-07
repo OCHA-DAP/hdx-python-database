@@ -237,6 +237,7 @@ class Database:
                 raise DatabaseError("No engine or database uri provided!")
             engine = create_engine(db_uri, poolclass=NullPool, echo=False)
         Session = sessionmaker(bind=engine)
+        session = Session()
         if reflect:
             Base = automap_base(declarative_base=table_base)
             Base.prepare(autoload_with=engine)
@@ -244,7 +245,6 @@ class Database:
         else:
             table_base.metadata.create_all(engine)
             reflected_classes = None
-        session = Session()
         return session, reflected_classes
 
     @staticmethod

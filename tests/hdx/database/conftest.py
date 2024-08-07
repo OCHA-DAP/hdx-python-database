@@ -26,7 +26,11 @@ def mock_psycopg(monkeypatch):
             PsycopgConnection.connected = True
             raise psycopg.OperationalError
 
-    monkeypatch.setattr(psycopg, "connect", connect)
+    try:
+        monkeypatch.setattr(psycopg, "connect", connect)
+        yield
+    finally:
+        monkeypatch.delattr(psycopg, "connect")
 
 
 @pytest.fixture(scope="function")
@@ -40,12 +44,6 @@ def mock_SSHTunnelForwarder(monkeypatch):
     def stop(_):
         TestDatabase.stopped = True
 
-    monkeypatch.setattr(SSHTunnelForwarder, "__init__", init)
-    monkeypatch.setattr(SSHTunnelForwarder, "start", start)
-    monkeypatch.setattr(SSHTunnelForwarder, "stop", stop)
-    monkeypatch.setattr(SSHTunnelForwarder, "local_bind_host", "0.0.0.0")
-    monkeypatch.setattr(SSHTunnelForwarder, "local_bind_port", 12345)
-
     def create_session(_, engine, table_base, reflect):
         class Session:
             bind = namedtuple("Bind", "engine")
@@ -57,7 +55,21 @@ def mock_SSHTunnelForwarder(monkeypatch):
         TestDatabase.table_base = table_base
         return Session(), None
 
-    monkeypatch.setattr(Database, "create_session", create_session)
+    try:
+        monkeypatch.setattr(SSHTunnelForwarder, "__init__", init)
+        monkeypatch.setattr(SSHTunnelForwarder, "start", start)
+        monkeypatch.setattr(SSHTunnelForwarder, "stop", stop)
+        monkeypatch.setattr(SSHTunnelForwarder, "local_bind_host", "0.0.0.0")
+        monkeypatch.setattr(SSHTunnelForwarder, "local_bind_port", 12345)
+        monkeypatch.setattr(Database, "create_session", create_session)
+        yield
+    finally:
+        monkeypatch.delattr(SSHTunnelForwarder, "__init__")
+        monkeypatch.delattr(SSHTunnelForwarder, "start")
+        monkeypatch.delattr(SSHTunnelForwarder, "stop")
+        monkeypatch.delattr(SSHTunnelForwarder, "local_bind_host")
+        monkeypatch.delattr(SSHTunnelForwarder, "local_bind_port")
+        monkeypatch.delattr(Database, "create_session")
 
 
 @pytest.fixture(scope="function")
@@ -99,4 +111,8 @@ def mock_subprocess(monkeypatch):
     def run(*args, **kwargs):
         return CompletedProcess()
 
-    monkeypatch.setattr(subprocess, "run", run)
+    try:
+        monkeypatch.setattr(subprocess, "run", run)
+        yield
+    finally:
+        monkeypatch.delattr(subprocess, "run")
