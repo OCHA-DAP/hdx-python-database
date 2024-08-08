@@ -85,7 +85,7 @@ python = ["3.12"]
 run = """
        pytest -c .config/pytest.ini --rootdir=. --junitxml=test-results.xml \
        --cov --cov-config=.config/coveragerc --no-cov-on-fail \
-       --cov-report=lcov --cov-report=term-missing
+       --cov-report=lcov --cov-report=term-missing -p no:randomly
        """
 
 [tool.hatch.envs.hatch-static-analysis.scripts]
