@@ -48,6 +48,7 @@ class TestDatabase:
             date_view = dbdatabase.get_prepare_results()[0]
             dbtestdate = dbsession.execute(select(date_view)).scalar_one()
             assert dbtestdate == now
+            dbdatabase.base.metadata.drop_all()
             dbdatabase.base.metadata.clear()
 
     def test_errors(self):
