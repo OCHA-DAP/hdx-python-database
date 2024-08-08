@@ -6,15 +6,14 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 from sqlalchemy import Engine, TableClause, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql.ddl import CreateSchema, DropSchema
-from sqlalchemy.util import Properties
 
 from ._version import version as __version__  # noqa: F401
 from .dburi import get_connection_uri
 from .no_timezone import Base as NoTZBase
-from .postgresql import wait_for_postgresql
+from .postgresql import restore_from_pgfile, wait_for_postgresql
 from .views import view
 from .with_timezone import Base as TZBase
 
@@ -41,6 +40,9 @@ class Database:
     with timezones to timezoneless database columns (but not when using
     reflection). If table_base is supplied, db_has_tz is ignored.
 
+    The database can be restored from a given pg_restore file supplied in the
+    parameter pg_restore_file.
+
     There is an option to wipe and create an empty schema in the database by
     setting recreate_schema to True and setting a schema_name ("public" is the
     default).
@@ -63,6 +65,7 @@ class Database:
         table_base (Optional[Type[DeclarativeBase]]): Override table base. Defaults to None.
         reflect (bool): Whether to reflect existing tables. Defaults to False.
         **kwargs: See below
+        pg_restore_file (str): Restore database from pg_restore file
         recreate_schema (bool): Whether to recreate schema
         schema_name (str): Database schema name. Defaults to "public".
         prepare_fn (Callable[[], None]]): Function to call before Base.metadata.create_all.
@@ -95,9 +98,11 @@ class Database:
             port = int(port)
         schema_name = None
         if len(kwargs) == 0:
+            pg_restore_file = None
             recreate_schema = False
             prepare_fn = do_nothing_fn
         else:
+            pg_restore_file = kwargs.pop("pg_restore_file", None)
             recreate_schema = kwargs.pop("recreate_schema", False)
             schema_name = kwargs.pop("schema", "public")
             prepare_fn = kwargs.pop("prepare_fn", do_nothing_fn)
@@ -144,6 +149,8 @@ class Database:
                 )
         if not engine and dialect == "postgresql":
             wait_for_postgresql(db_uri)
+        if pg_restore_file and db_uri:
+            restore_from_pgfile(db_uri, pg_restore_file)
         if not table_base:
             if db_has_tz:
                 table_base = TZBase
@@ -155,19 +162,31 @@ class Database:
         if recreate_schema:
             self.recreate_schema(engine, schema_name)
         self.prepare_results = prepare_fn()
-        self.session, self.reflected_classes = self.create_session(
+        self.session, self.base = self.create_session(
             engine,
             table_base=table_base,
             reflect=reflect,
         )
+        if reflect:
+            self.reflected_classes = self.base.classes
+        else:
+            self.reflected_classes = None
+
+    def cleanup(self) -> None:
+        self.base.metadata.clear()
+        self.session.close()
+        self.engine.dispose()
+        if self.server is not None:
+            self.server.stop()
 
     def __enter__(self) -> "Database":
         return self
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
-        self.session.close()
-        if self.server is not None:
-            self.server.stop()
+        self.cleanup()
+
+    def drop_all(self):
+        self.base.metadata.drop_all(self.engine)
 
     def get_engine(self) -> Engine:
         """Returns SQLAlchemy engine.
@@ -207,7 +226,7 @@ class Database:
         db_uri: Optional[str] = None,
         table_base: Type[DeclarativeBase] = NoTZBase,
         reflect: bool = False,
-    ) -> Tuple[Session, Optional[Properties]]:
+    ) -> Tuple[Session, Any]:
         """Creates SQLAlchemy session given SQLAlchemy engine or database uri
         (one of which must be supplied). Tables must inherit from Base in
         hdx.utilities.database unless base is defined. If reflect is True,
@@ -222,22 +241,19 @@ class Database:
             reflect (bool): Whether to reflect existing tables. Defaults to False.
 
         Returns:
-            Tuple[Session, Optional[Properties]]: (SQLAlchemy session, reflected classes if available)
+            Tuple[Session, Any]: (SQLAlchemy session, base)
         """
         if not engine:
             if db_uri is None:
                 raise DatabaseError("No engine or database uri provided!")
             engine = create_engine(db_uri, poolclass=NullPool, echo=False)
-        Session = sessionmaker(bind=engine)
         if reflect:
             Base = automap_base(declarative_base=table_base)
             Base.prepare(autoload_with=engine)
-            reflected_classes = Base.classes
+            table_base = Base
         else:
             table_base.metadata.create_all(engine)
-            reflected_classes = None
-        session = Session()
-        return session, reflected_classes
+        return Session(engine), table_base
 
     @staticmethod
     def recreate_schema(engine: Engine, schema_name: str = "public") -> bool:
@@ -285,6 +301,7 @@ class Database:
 
         Args:
             view_params_list (List[Dict]): List of dictionaries with view parameters
+
         Returns:
             List[TableClause]: SQLAlchemy Views
         """

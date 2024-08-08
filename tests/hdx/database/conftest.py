@@ -1,3 +1,4 @@
+import subprocess
 from collections import namedtuple
 
 import psycopg
@@ -25,7 +26,11 @@ def mock_psycopg(monkeypatch):
             PsycopgConnection.connected = True
             raise psycopg.OperationalError
 
-    monkeypatch.setattr(psycopg, "connect", connect)
+    try:
+        monkeypatch.setattr(psycopg, "connect", connect)
+        yield
+    finally:
+        monkeypatch.delattr(psycopg, "connect")
 
 
 @pytest.fixture(scope="function")
@@ -39,12 +44,6 @@ def mock_SSHTunnelForwarder(monkeypatch):
     def stop(_):
         TestDatabase.stopped = True
 
-    monkeypatch.setattr(SSHTunnelForwarder, "__init__", init)
-    monkeypatch.setattr(SSHTunnelForwarder, "start", start)
-    monkeypatch.setattr(SSHTunnelForwarder, "stop", stop)
-    monkeypatch.setattr(SSHTunnelForwarder, "local_bind_host", "0.0.0.0")
-    monkeypatch.setattr(SSHTunnelForwarder, "local_bind_port", 12345)
-
     def create_session(_, engine, table_base, reflect):
         class Session:
             bind = namedtuple("Bind", "engine")
@@ -53,10 +52,23 @@ def mock_SSHTunnelForwarder(monkeypatch):
                 return None
 
         Session.bind.engine = engine
-        TestDatabase.table_base = table_base
-        return Session(), None
+        return Session(), table_base
 
-    monkeypatch.setattr(Database, "create_session", create_session)
+    try:
+        monkeypatch.setattr(SSHTunnelForwarder, "__init__", init)
+        monkeypatch.setattr(SSHTunnelForwarder, "start", start)
+        monkeypatch.setattr(SSHTunnelForwarder, "stop", stop)
+        monkeypatch.setattr(SSHTunnelForwarder, "local_bind_host", "0.0.0.0")
+        monkeypatch.setattr(SSHTunnelForwarder, "local_bind_port", 12345)
+        monkeypatch.setattr(Database, "create_session", create_session)
+        yield
+    finally:
+        monkeypatch.delattr(SSHTunnelForwarder, "__init__")
+        monkeypatch.delattr(SSHTunnelForwarder, "start")
+        monkeypatch.delattr(SSHTunnelForwarder, "stop")
+        monkeypatch.delattr(SSHTunnelForwarder, "local_bind_host")
+        monkeypatch.delattr(SSHTunnelForwarder, "local_bind_port")
+        monkeypatch.delattr(Database, "create_session")
 
 
 @pytest.fixture(scope="function")
@@ -84,3 +96,22 @@ def mock_engine():
             return SQAConnection()
 
     return MockEngine()
+
+
+@pytest.fixture(scope="function")
+def mock_subprocess(monkeypatch):
+    class CompletedProcess:
+        stdout = "WORKED!"
+
+        @staticmethod
+        def check_returncode():
+            return
+
+    def run(*args, **kwargs):
+        return CompletedProcess()
+
+    try:
+        monkeypatch.setattr(subprocess, "run", run)
+        yield
+    finally:
+        monkeypatch.delattr(subprocess, "run")
