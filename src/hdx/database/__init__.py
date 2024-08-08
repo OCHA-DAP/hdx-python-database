@@ -6,10 +6,9 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 from sqlalchemy import Engine, TableClause, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql.ddl import CreateSchema, DropSchema
-from sqlalchemy.util import Properties
 
 from ._version import version as __version__  # noqa: F401
 from .dburi import get_connection_uri
@@ -163,19 +162,31 @@ class Database:
         if recreate_schema:
             self.recreate_schema(engine, schema_name)
         self.prepare_results = prepare_fn()
-        self.session, self.reflected_classes = self.create_session(
+        self.session, self.base = self.create_session(
             engine,
             table_base=table_base,
             reflect=reflect,
         )
+        if reflect:
+            self.reflected_classes = self.base.classes
+        else:
+            self.reflected_classes = None
+
+    def cleanup(self) -> None:
+        self.base.metadata.clear()
+        self.session.close()
+        self.engine.dispose()
+        if self.server is not None:
+            self.server.stop()
 
     def __enter__(self) -> "Database":
         return self
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
-        self.session.close()
-        if self.server is not None:
-            self.server.stop()
+        self.cleanup()
+
+    def drop_all(self):
+        self.base.metadata.drop_all(self.engine)
 
     def get_engine(self) -> Engine:
         """Returns SQLAlchemy engine.
@@ -215,7 +226,7 @@ class Database:
         db_uri: Optional[str] = None,
         table_base: Type[DeclarativeBase] = NoTZBase,
         reflect: bool = False,
-    ) -> Tuple[Session, Optional[Properties]]:
+    ) -> Tuple[Session, Any]:
         """Creates SQLAlchemy session given SQLAlchemy engine or database uri
         (one of which must be supplied). Tables must inherit from Base in
         hdx.utilities.database unless base is defined. If reflect is True,
@@ -230,22 +241,19 @@ class Database:
             reflect (bool): Whether to reflect existing tables. Defaults to False.
 
         Returns:
-            Tuple[Session, Optional[Properties]]: (SQLAlchemy session, reflected classes if available)
+            Tuple[Session, Any]: (SQLAlchemy session, base)
         """
         if not engine:
             if db_uri is None:
                 raise DatabaseError("No engine or database uri provided!")
             engine = create_engine(db_uri, poolclass=NullPool, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
         if reflect:
             Base = automap_base(declarative_base=table_base)
             Base.prepare(autoload_with=engine)
-            reflected_classes = Base.classes
+            table_base = Base
         else:
             table_base.metadata.create_all(engine)
-            reflected_classes = None
-        return session, reflected_classes
+        return Session(engine), table_base
 
     @staticmethod
     def recreate_schema(engine: Engine, schema_name: str = "public") -> bool:

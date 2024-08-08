@@ -52,8 +52,7 @@ def mock_SSHTunnelForwarder(monkeypatch):
                 return None
 
         Session.bind.engine = engine
-        TestDatabase.table_base = table_base
-        return Session(), None
+        return Session(), table_base
 
     try:
         monkeypatch.setattr(SSHTunnelForwarder, "__init__", init)
