@@ -173,7 +173,11 @@ class Database:
             self.reflected_classes = None
 
     def cleanup(self) -> None:
-        self.base.metadata.clear()
+        """Cleanup SQLAlchemy.
+
+        Returns:
+            sqlalchemy.Engine: SQLAlchemy engine
+        """
         self.session.close()
         self.engine.dispose()
         if self.server is not None:
@@ -185,7 +189,12 @@ class Database:
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         self.cleanup()
 
-    def drop_all(self):
+    def drop_all(self) -> None:
+        """Drop all tables.
+
+        Returns:
+            None
+        """
         self.base.metadata.drop_all(self.engine)
 
     def get_engine(self) -> Engine:

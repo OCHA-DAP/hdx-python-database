@@ -34,10 +34,6 @@ class TestSSH:
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
             assert dbdatabase.base == TZBase
-            try:
-                dbdatabase.drop_all()
-            except AttributeError:
-                pass
 
         with Database(
             ssh_host="mysshhost", ssh_port=25, table_base=TZBase, **params
@@ -48,10 +44,6 @@ class TestSSH:
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
             assert dbdatabase.base == TZBase
-            try:
-                dbdatabase.drop_all()
-            except AttributeError:
-                pass
 
         with Database(ssh_host="mysshhost", **self.params_pg) as dbdatabase:
             dbsession = dbdatabase.get_session()
@@ -60,10 +52,6 @@ class TestSSH:
                 == "postgresql+psycopg://myuser:***@0.0.0.0:12345/mydatabase"
             )
             assert dbdatabase.base == NoTZBase
-            try:
-                dbdatabase.drop_all()
-            except AttributeError:
-                pass
 
         with Database(
             ssh_host="mysshhost", ssh_port=25, **params
@@ -74,7 +62,3 @@ class TestSSH:
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
             assert dbdatabase.base == NoTZBase
-            try:
-                dbdatabase.drop_all()
-            except AttributeError:
-                pass
