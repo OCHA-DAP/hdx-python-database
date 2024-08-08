@@ -44,4 +44,3 @@ class TestReflect:
             # with reflection, type annotation maps do not work and hence
             # we don't have a timezone here
             assert row.date1 == datetime(1993, 9, 23, 14, 12, 56, 111000)
-            dbdatabase.drop_all()
