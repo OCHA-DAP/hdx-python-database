@@ -180,7 +180,7 @@ class Database:
         """
 #        self.base.metadata.clear()
         self.session.close()
-#        self.engine.dispose()
+        self.engine.dispose()
         if self.server is not None:
             self.server.stop()
 
