@@ -178,7 +178,6 @@ class Database:
         Returns:
             sqlalchemy.Engine: SQLAlchemy engine
         """
-#        self.base.metadata.clear()
         self.session.close()
         self.engine.dispose()
         if self.server is not None:
