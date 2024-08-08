@@ -57,4 +57,3 @@ class TestDatabase:
         with pytest.raises(DatabaseError):
             with Database():
                 pass
-
