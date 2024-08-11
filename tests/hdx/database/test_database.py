@@ -3,6 +3,7 @@
 from datetime import datetime, timezone
 from os import remove
 from os.path import join
+from tempfile import gettempdir
 
 import pytest
 from sqlalchemy import select
@@ -13,30 +14,21 @@ from hdx.database.no_timezone import Base as NoTZBase
 
 
 class TestDatabase:
-    dbpath = join("tests", "test_database.db")
-
-    @pytest.fixture(scope="function")
-    def nodatabase(self):
-        try:
-            remove(TestDatabase.dbpath)
-        except OSError:
-            pass
-        return f"sqlite:///{TestDatabase.dbpath}"
-
-    def test_get_session(self, nodatabase):
+    def test_get_session(self):
         assert DBTestDate.__tablename__ == "db_test_date"
 
         def prepare_fn():
             return Database.prepare_views([date_view_params])
 
+        dbpath = join(gettempdir(), "test_database.db")
         with Database(
-            database=TestDatabase.dbpath,
+            database=dbpath,
             port=None,
             dialect="sqlite",
             prepare_fn=prepare_fn,
         ) as dbdatabase:
             dbsession = dbdatabase.get_session()
-            assert str(dbsession.bind.engine.url) == nodatabase
+            assert str(dbsession.bind.engine.url) == f"sqlite:///{dbpath}"
             assert dbdatabase.base == NoTZBase
             now = datetime(2022, 10, 20, 22, 35, 55, tzinfo=timezone.utc)
             input_dbtestdate = DBTestDate()
@@ -48,8 +40,7 @@ class TestDatabase:
             date_view = dbdatabase.get_prepare_results()[0]
             dbtestdate = dbsession.execute(select(date_view)).scalar_one()
             assert dbtestdate == now
-            dbdatabase.base.metadata.drop_all()
-            dbdatabase.base.metadata.clear()
+        remove(dbpath)
 
     def test_errors(self):
         with pytest.raises(DatabaseError):
