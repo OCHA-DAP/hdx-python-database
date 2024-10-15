@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 from os import remove
-from os.path import join
+from os.path import exists, join
 from tempfile import gettempdir
 
 import pytest
@@ -21,6 +21,8 @@ class TestDatabase:
             return Database.prepare_views([date_view_params])
 
         dbpath = join(gettempdir(), "test_database.db")
+        if exists(dbpath):
+            remove(dbpath)
         with Database(
             database=dbpath,
             port=None,
