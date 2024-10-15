@@ -87,7 +87,7 @@ def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
     except subprocess.CalledProcessError as ex:
         command = " ".join(subprocess_params)
         raise PostgresError(
-            f"{command} failed. Return code: {process.returncode}"
+            f"{command} failed. Return code: {process.returncode}. Error: {process.stderr}"
         ) from ex
 
     for line in process.stdout.splitlines():
