@@ -258,7 +258,9 @@ class Database:
             engine = create_engine(db_uri, poolclass=NullPool, echo=False)
         if reflect:
             Base = automap_base(declarative_base=table_base)
-            Base.prepare(autoload_with=engine)
+            Base.prepare(
+                autoload_with=engine, reflection_options={"views": True}
+            )
             table_base = Base
         else:
             table_base.metadata.create_all(engine)
