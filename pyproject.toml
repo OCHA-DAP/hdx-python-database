@@ -88,6 +88,9 @@ run = """
        --cov-report=lcov --cov-report=term-missing
        """
 
+[tool.hatch.envs.hatch-static-analysis]
+dependencies = ["ruff==0.9.6"]
+
 [tool.hatch.envs.hatch-static-analysis.scripts]
 format-check = ["ruff format --config .config/ruff.toml --check --diff {args:.}",]
 format-fix = ["ruff format --config .config/ruff.toml {args:.}",]
