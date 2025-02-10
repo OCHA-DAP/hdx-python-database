@@ -7,10 +7,8 @@ https://github.com/sqlalchemy/sqlalchemy/wiki/Views#sqlalchemy-14-20-version
 """
 
 import sqlalchemy as sa
-from sqlalchemy import MetaData, Selectable, TableClause
 from sqlalchemy.ext import compiler
 from sqlalchemy.schema import DDLElement
-from sqlalchemy.sql import table
 
 
 class CreateView(DDLElement):
@@ -45,22 +43,15 @@ def view_doesnt_exist(ddl, target, connection, **kw):
     return not view_exists(ddl, target, connection, **kw)
 
 
-def view(name: str, metadata: MetaData, selectable: Selectable) -> TableClause:
-    """Prepare SQLAlchemy view. Must be run before Base.metadata.create_all.
-
-    Args:
-        name (str): View name
-        metadata (MetaData): Base metadata
-        selectable (Selectable): SQLAlchemy select statement
-
-    Returns:
-        TableClause: SQLAlchemy View
-    """
-    t = table(name)
-
-    t._columns._populate_separate_keys(
-        col._make_proxy(t) for col in selectable.selected_columns
+def view(name, metadata, selectable):
+    t = sa.table(
+        name,
+        *(
+            sa.Column(c.name, c.type, primary_key=c.primary_key)
+            for c in selectable.selected_columns
+        ),
     )
+    t.primary_key.update(c for c in t.c if c.primary_key)
 
     sa.event.listen(
         metadata,
