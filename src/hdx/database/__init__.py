@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
-from sqlalchemy import Engine, TableClause, create_engine
+from sqlalchemy import Engine, TableClause, create_engine, insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import DeclarativeBase, Session
@@ -123,16 +123,16 @@ class Database:
                 del kwargs["ssh_port"]
             else:
                 ssh_port = 22
-            self.server = sshtunnel.SSHTunnelForwarder(
+            self._server = sshtunnel.SSHTunnelForwarder(
                 (ssh_host, ssh_port),
                 remote_bind_address=(host, port),
                 **kwargs,
             )
-            self.server.start()
-            host = self.server.local_bind_host
-            port = self.server.local_bind_port
+            self._server.start()
+            host = self._server.local_bind_host
+            port = self._server.local_bind_port
         else:
-            self.server = None
+            self._server = None
         if not engine and not db_uri:
             db_uri = get_connection_uri(
                 database,
@@ -158,19 +158,19 @@ class Database:
                 table_base = NoTZBase
         if not engine:
             engine = create_engine(db_uri, poolclass=NullPool, echo=False)
-        self.engine: Engine = engine
+        self._engine: Engine = engine
         if recreate_schema:
             self.recreate_schema(engine, schema_name)
-        self.prepare_results = prepare_fn()
-        self.session, self.base = self.create_session(
+        self._prepare_results = prepare_fn()
+        self._session, self._base = self.create_session(
             engine,
             table_base=table_base,
             reflect=reflect,
         )
         if reflect:
-            self.reflected_classes = self.base.classes
+            self._reflected_classes = self._base.classes
         else:
-            self.reflected_classes = None
+            self._reflected_classes = None
 
     def cleanup(self) -> None:
         """Cleanup SQLAlchemy.
@@ -178,10 +178,10 @@ class Database:
         Returns:
             sqlalchemy.Engine: SQLAlchemy engine
         """
-        self.session.close()
-        self.engine.dispose()
-        if self.server is not None:
-            self.server.stop()
+        self._session.close()
+        self._engine.dispose()
+        if self._server is not None:
+            self._server.stop()
 
     def __enter__(self) -> "Database":
         return self
@@ -195,7 +195,7 @@ class Database:
         Returns:
             None
         """
-        self.base.metadata.drop_all(self.engine)
+        self._base.metadata.drop_all(self._engine)
 
     def get_engine(self) -> Engine:
         """Returns SQLAlchemy engine.
@@ -203,7 +203,7 @@ class Database:
         Returns:
             sqlalchemy.Engine: SQLAlchemy engine
         """
-        return self.engine
+        return self._engine
 
     def get_session(self) -> Session:
         """Returns SQLAlchemy session.
@@ -211,7 +211,7 @@ class Database:
         Returns:
             sqlalchemy.orm.Session: SQLAlchemy session
         """
-        return self.session
+        return self._session
 
     def get_reflected_classes(self) -> Any:
         """Gets reflected classes.
@@ -219,7 +219,7 @@ class Database:
         Returns:
             Any: Reflected classes
         """
-        return self.reflected_classes
+        return self._reflected_classes
 
     def get_prepare_results(self) -> Any:
         """Returns results from prepare function.
@@ -227,7 +227,31 @@ class Database:
         Returns:
             Any: Results from prepare function
         """
-        return self.prepare_results
+        return self._prepare_results
+
+    def batch_populate(
+        self,
+        rows: List[Dict],
+        dbtable: Type[DeclarativeBase],
+        batch_size: int = 1000,
+    ) -> None:
+        """Batch populate database table.
+
+        Args:
+            rows (List[Dict]): List of rows
+            dbtable (Type[DeclarativeBase]): Database table
+            batch_size (int): Batch size. Defaults to 1000.
+
+        Returns:
+            Tuple[Session, Any]: (SQLAlchemy session, base)
+        """
+        batches = range(len(rows) // batch_size + 1)
+        for batch in batches:
+            start_row = batch * batch_size
+            end_row = start_row + batch_size
+            batch_rows = rows[start_row:end_row]
+            self._session.execute(insert(dbtable), batch_rows)
+        self._session.commit()
 
     @staticmethod
     def create_session(
