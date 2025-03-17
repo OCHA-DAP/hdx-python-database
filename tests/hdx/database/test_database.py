@@ -31,10 +31,9 @@ class TestDatabase:
         ) as dbdatabase:
             dbsession = dbdatabase.get_session()
             assert str(dbsession.bind.engine.url) == f"sqlite:///{dbpath}"
-            assert dbdatabase.base == NoTZBase
+            assert dbdatabase._base == NoTZBase
             now = datetime(2022, 10, 20, 22, 35, 55, tzinfo=timezone.utc)
-            input_dbtestdate = DBTestDate()
-            input_dbtestdate.test_date = now
+            input_dbtestdate = DBTestDate(test_date=now)
             dbsession.add(input_dbtestdate)
             dbsession.commit()
             dbtestdate = dbsession.execute(select(DBTestDate)).scalar_one()
@@ -42,6 +41,15 @@ class TestDatabase:
             date_view = dbdatabase.get_prepare_results()[0]
             dbtestdate = dbsession.execute(select(date_view)).scalar_one()
             assert dbtestdate == now
+
+            now = datetime(2023, 10, 20, 22, 35, 55, tzinfo=timezone.utc)
+            rows = [{"test_date": now}]
+            dbdatabase.batch_populate(rows, DBTestDate)
+            dbtestdate = (
+                dbsession.execute(select(DBTestDate)).all()[1][0].test_date
+            )
+            assert dbtestdate == now
+
         remove(dbpath)
 
     def test_errors(self):

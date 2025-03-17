@@ -27,7 +27,7 @@ class TestReflect:
             dburi = f"sqlite:///{dbpath}"
             assert str(dbengine.url) == dburi
             dbsession = dbdatabase.get_session()
-            assert isinstance(dbdatabase.base, DeclarativeAttributeIntercept)
+            assert isinstance(dbdatabase._base, DeclarativeAttributeIntercept)
             assert str(dbsession.bind.engine.url) == dburi
             Table1 = dbdatabase.get_reflected_classes().table1
             row = dbsession.execute(select(Table1)).scalar_one()

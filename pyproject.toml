@@ -50,6 +50,7 @@ sshtunnel = ["sshtunnel"]
 postgresql = ["psycopg[binary]"]
 test = ["pytest", "pytest-cov"]
 dev = ["pre-commit"]
+docs = ["mkapi"]
 
 
 #########
@@ -89,7 +90,7 @@ run = """
        """
 
 [tool.hatch.envs.hatch-static-analysis]
-dependencies = ["ruff==0.9.6"]
+dependencies = ["ruff==0.9.10"]
 
 [tool.hatch.envs.hatch-static-analysis.scripts]
 format-check = ["ruff format --config .config/ruff.toml --check --diff {args:.}",]

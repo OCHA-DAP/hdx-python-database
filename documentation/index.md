@@ -117,6 +117,16 @@ If a prepare function is supplied in prepare_fn, it will be executed before
 Base.metadata.create_all and the results of it returned in instance variable
 prepare_results.
 
+Batch population of rows (list of dictionaries) can be achieved with the
+batch_populate method of Database, for example:
+
+        now = datetime(2023, 10, 20, 22, 35, 55, tzinfo=timezone.utc)
+        rows = [{"test_date": now}]
+        dbdatabase.batch_populate(rows, DBTestDate)
+        dbtestdate = (
+            dbsession.execute(select(DBTestDate)).all()[1][0].test_date
+        )
+    
 
 ## Connection URI
 
