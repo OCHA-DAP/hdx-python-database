@@ -61,6 +61,7 @@ Versions from 1.0.6 no longer support Python 2.7.
 A fresh schema can be created using the function `recreate_schema`. Any
 existing schema with that name will be dropped eg.
 
+    from hdx.database import Database
     Database.recreate_schema(engine, db_uri)
 
 Your SQLAlchemy database tables must inherit from `Base` in
@@ -126,7 +127,7 @@ batch_populate method of Database, for example:
         dbtestdate = (
             dbsession.execute(select(DBTestDate)).all()[1][0].test_date
         )
-    
+
 
 ## Connection URI
 
