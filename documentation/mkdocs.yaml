@@ -11,6 +11,4 @@ plugins:
   - mkapi
 nav:
   - Home: index.md
-  - API Documentation:
-    - Database: $src/hdx.database.Database
-    - PostgreSQL specific: $src/hdx.database.postgresql.*
+  - API Documentation: $src/hdx.database.**
