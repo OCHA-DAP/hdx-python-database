@@ -53,9 +53,7 @@ class TestSSH:
             )
             assert dbdatabase._base == NoTZBase
 
-        with Database(
-            ssh_host="mysshhost", ssh_port=25, **params
-        ) as dbdatabase:
+        with Database(ssh_host="mysshhost", ssh_port=25, **params) as dbdatabase:
             dbsession = dbdatabase.get_session()
             assert (
                 str(dbsession.bind.engine.url)

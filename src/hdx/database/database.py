@@ -281,9 +281,7 @@ class Database:
             engine = create_engine(db_uri, poolclass=NullPool, echo=False)
         if reflect:
             Base = automap_base(declarative_base=table_base)
-            Base.prepare(
-                autoload_with=engine, reflection_options={"views": True}
-            )
+            Base.prepare(autoload_with=engine, reflection_options={"views": True})
             table_base = Base
         else:
             table_base.metadata.create_all(engine)
@@ -307,9 +305,7 @@ class Database:
                     DropSchema(schema_name, cascade=True, if_exists=True)
                 )
                 connection.commit()
-                connection.execute(
-                    CreateSchema(schema_name, if_not_exists=True)
-                )
+                connection.execute(CreateSchema(schema_name, if_not_exists=True))
                 connection.commit()
                 return True
         except SQLAlchemyError:

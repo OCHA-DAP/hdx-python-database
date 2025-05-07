@@ -48,6 +48,6 @@ Homepage = "https://github.com/OCHA-DAP/hdx-python-database"
 [project.optional-dependencies]
 sshtunnel = ["sshtunnel"]
 postgresql = ["psycopg[binary]"]
-test = ["pytest", "pytest-cov"]
+test = ["sshtunnel", "psycopg[binary]", "pytest", "pytest-cov"]
 dev = ["pre-commit"]
 docs = ["mkapi"]
