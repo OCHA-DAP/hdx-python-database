@@ -17,9 +17,7 @@ class TestDBURI:
         "dialect": "postgresql",
         "driver": "psycopg",
     }
-    connection_uri_pg = (
-        "postgresql+psycopg://myuser:mypass@myserver:1234/mydatabase"
-    )
+    connection_uri_pg = "postgresql+psycopg://myuser:mypass@myserver:1234/mydatabase"
     params_pg_no_driver = {
         "database": "mydatabase",
         "host": "myserver",
@@ -37,9 +35,7 @@ class TestDBURI:
         "dialect": "postgresql",
         "driver": None,
     }
-    connection_uri_pg_no_driver = (
-        "postgresql://myuser:mypass@myserver:1234/mydatabase"
-    )
+    connection_uri_pg_no_driver = "postgresql://myuser:mypass@myserver:1234/mydatabase"
     params_sq_no_driver = {
         "database": "mydatabase",
         "host": "myserver",
@@ -67,9 +63,7 @@ class TestDBURI:
             include_driver=False,
         )
         assert result == TestDBURI.params_pg_no_driver
-        result = get_params_from_connection_uri(
-            TestDBURI.connection_uri_pg_no_driver
-        )
+        result = get_params_from_connection_uri(TestDBURI.connection_uri_pg_no_driver)
         assert result == TestDBURI.params_pg_driver_none
         result = get_params_from_connection_uri(TestDBURI.connection_uri_sq)
         assert result == TestDBURI.params_sq_driver_none
@@ -77,9 +71,7 @@ class TestDBURI:
     def test_get_connection_uri(self):
         result = get_connection_uri(**TestDBURI.params_pg)
         assert result == TestDBURI.connection_uri_pg
-        result = get_connection_uri(
-            **TestDBURI.params_pg, include_driver=False
-        )
+        result = get_connection_uri(**TestDBURI.params_pg, include_driver=False)
         assert result == TestDBURI.connection_uri_pg_no_driver
         result = get_connection_uri(**TestDBURI.params_pg_no_driver)
         assert result == TestDBURI.connection_uri_pg
