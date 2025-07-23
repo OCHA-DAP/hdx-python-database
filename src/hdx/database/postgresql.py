@@ -59,7 +59,7 @@ def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
         str: Output from the pg_restore command
     """
     db_params = get_params_from_connection_uri(db_uri)
-    if pg_restore_file[:-3] == ".xz":
+    if pg_restore_file[-3:] == ".xz":
         subprocess_params = ["unxz", "-d", pg_restore_file, "|", "pg_restore", "-c"]
         pg_restore_file = None
     else:
