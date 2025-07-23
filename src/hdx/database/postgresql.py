@@ -62,7 +62,7 @@ def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
     if pg_restore_file[-3:] == ".xz":
         decompress = subprocess.Popen(
             ("unxz", "-c", "-d", pg_restore_file), stdout=subprocess.PIPE
-        )
+        ).stdout
     else:
         decompress = None
     subprocess_params = ["pg_restore", "-c"]
