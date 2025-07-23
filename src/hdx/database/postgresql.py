@@ -59,7 +59,11 @@ def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
         str: Output from the pg_restore command
     """
     db_params = get_params_from_connection_uri(db_uri)
-    subprocess_params = ["pg_restore", "-c"]
+    if pg_restore_file[:-3] == ".xz":
+        subprocess_params = ["unxz", "-d", pg_restore_file, "|", "pg_restore", "-c"]
+        pg_restore_file = None
+    else:
+        subprocess_params = ["pg_restore", "-c"]
     for key, value in db_params.items():
         match key:
             case "database":
@@ -74,7 +78,8 @@ def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
                 continue
         subprocess_params.append(f"{value}")
 
-    subprocess_params.append(f"{pg_restore_file}")
+    if pg_restore_file:
+        subprocess_params.append(pg_restore_file)
     env = environ.copy()
     password = db_params.get("password")
     if password:
