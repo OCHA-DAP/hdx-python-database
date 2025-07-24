@@ -59,6 +59,12 @@ def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
         str: Output from the pg_restore command
     """
     db_params = get_params_from_connection_uri(db_uri)
+    if pg_restore_file[-3:] == ".xz":
+        decompress = subprocess.Popen(
+            ("unxz", "-c", "-d", pg_restore_file), stdout=subprocess.PIPE
+        ).stdout
+    else:
+        decompress = None
     subprocess_params = ["pg_restore", "-c"]
     for key, value in db_params.items():
         match key:
@@ -74,13 +80,18 @@ def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
                 continue
         subprocess_params.append(f"{value}")
 
-    subprocess_params.append(f"{pg_restore_file}")
+    if not decompress:
+        subprocess_params.append(pg_restore_file)
     env = environ.copy()
     password = db_params.get("password")
     if password:
         env["PGPASSWORD"] = password
     process = subprocess.run(
-        subprocess_params, env=env, capture_output=True, encoding="utf-8"
+        subprocess_params,
+        env=env,
+        capture_output=True,
+        encoding="utf-8",
+        stdin=decompress,
     )
     try:
         process.check_returncode()

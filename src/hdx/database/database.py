@@ -288,6 +288,28 @@ class Database:
         return Session(engine), table_base
 
     @staticmethod
+    def drop_schema(engine: Engine, schema_name: str = "public") -> bool:
+        """Wipe schema in database using SQLAlchemy.
+
+        Args:
+            engine (Engine): SQLAlchemy engine to use.
+            schema_name (str): Schema name. Defaults to "public".
+
+        Returns:
+            bool: True if all successful, False if not
+        """
+        # Wipe and create an empty schema
+        try:
+            with engine.connect() as connection:
+                connection.execute(
+                    DropSchema(schema_name, cascade=True, if_exists=True)
+                )
+                connection.commit()
+                return True
+        except SQLAlchemyError:
+            return False
+
+    @staticmethod
     def recreate_schema(engine: Engine, schema_name: str = "public") -> bool:
         """Wipe and create empty schema in database using SQLAlchemy.
 
