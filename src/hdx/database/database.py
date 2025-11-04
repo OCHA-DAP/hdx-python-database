@@ -244,12 +244,10 @@ class Database:
         Returns:
             Tuple[Session, Any]: (SQLAlchemy session, base)
         """
-        batches = range(len(rows) // batch_size + 1)
-        for batch in batches:
-            start_row = batch * batch_size
-            end_row = start_row + batch_size
-            batch_rows = rows[start_row:end_row]
-            self._session.execute(insert(dbtable), batch_rows)
+
+        for i in range(0, len(rows), batch_size):
+            batch = rows[i : i + batch_size]
+            self._session.execute(insert(dbtable), batch)
         self._session.commit()
 
     @staticmethod
