@@ -135,7 +135,7 @@ sshtunnel==0.4.0
     # via hdx-python-database (pyproject.toml)
 typing-extensions==4.15.0
     # via sqlalchemy
-urllib3==2.5.0
+urllib3==2.6.0
     # via requests
 virtualenv==20.35.4
     # via pre-commit
