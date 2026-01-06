@@ -106,7 +106,7 @@ pygments==2.19.2
     #   pytest
 pymdown-extensions==10.16.1
     # via mkdocs-material
-pynacl==1.6.0
+pynacl==1.6.2
     # via paramiko
 pytest==8.4.2
     # via
