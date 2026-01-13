@@ -137,7 +137,7 @@ typing-extensions==4.15.0
     # via sqlalchemy
 urllib3==2.5.0
     # via requests
-virtualenv==20.35.4
+virtualenv==20.36.1
     # via pre-commit
 watchdog==6.0.0
     # via mkdocs
