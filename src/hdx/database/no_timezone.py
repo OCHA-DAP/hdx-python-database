@@ -1,7 +1,6 @@
 """Utilities for database datetime columns without timezone"""
 
 from datetime import datetime, timezone
-from typing import Optional
 
 from sqlalchemy import DateTime, TypeDecorator
 from sqlalchemy.orm import DeclarativeBase, declared_attr
@@ -16,7 +15,7 @@ class ConversionNoTZ(TypeDecorator):
     impl = DateTime
     cache_ok = True
 
-    def process_bind_param(self, value: Optional[datetime], _):
+    def process_bind_param(self, value: datetime | None, _):
         if value is None:
             return value
         if value.tzinfo:

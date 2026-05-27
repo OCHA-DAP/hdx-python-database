@@ -4,6 +4,7 @@ import logging
 import subprocess
 import time
 from os import environ
+from pathlib import Path
 
 from .dburi import get_params_from_connection_uri, remove_driver_from_uri
 
@@ -47,19 +48,20 @@ def wait_for_postgresql(db_uri: str) -> None:
             time.sleep(1)
 
 
-def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
+def restore_from_pgfile(db_uri: str, pg_restore_file: Path | str) -> str:
     """Restore database from a pg_restore file created by pg_backup using the
     pg_restore command.
 
     Args:
         db_uri (str): Connection URI
-        pg_restore_file (str): Path to the pg_restore database file
+        pg_restore_file (Path | str): Path to the pg_restore database file
 
     Returns:
         str: Output from the pg_restore command
     """
+    pg_restore_file = Path(pg_restore_file)
     db_params = get_params_from_connection_uri(db_uri)
-    if pg_restore_file[-3:] == ".xz":
+    if pg_restore_file.suffix == ".xz":
         decompress = subprocess.Popen(
             ("unxz", "-c", "-d", pg_restore_file), stdout=subprocess.PIPE
         ).stdout
@@ -81,7 +83,7 @@ def restore_from_pgfile(db_uri: str, pg_restore_file: str) -> str:
         subprocess_params.append(f"{value}")
 
     if not decompress:
-        subprocess_params.append(pg_restore_file)
+        subprocess_params.append(str(pg_restore_file))
     env = environ.copy()
     password = db_params.get("password")
     if password:

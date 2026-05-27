@@ -94,5 +94,8 @@ ENV/
 # IntelliJ
 .idea/
 
-# setuptools_scm
+# hatch-vcs
 _version.py
+
+# Mac files
+.DS_Store

@@ -24,15 +24,12 @@ class DropView(DDLElement):
 
 @compiler.compiles(CreateView)
 def _create_view(element, compiler, **kw):
-    return "CREATE VIEW %s AS %s" % (
-        element.name,
-        compiler.sql_compiler.process(element.selectable, literal_binds=True),
-    )
+    return f"CREATE VIEW {element.name} AS {compiler.sql_compiler.process(element.selectable, literal_binds=True)}"
 
 
 @compiler.compiles(DropView)
 def _drop_view(element, compiler, **kw):
-    return "DROP VIEW %s" % (element.name)
+    return f"DROP VIEW {element.name}"
 
 
 def view_exists(ddl, target, connection, **kw):

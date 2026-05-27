@@ -1,7 +1,7 @@
 """Database utilities"""
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any
 
 from sqlalchemy import Engine, TableClause, create_engine, insert
 from sqlalchemy.exc import SQLAlchemyError
@@ -64,7 +64,7 @@ class Database:
         table_base (Optional[Type[DeclarativeBase]]): Override table base. Defaults to None.
         reflect (bool): Whether to reflect existing tables. Defaults to False.
         **kwargs: See below
-        pg_restore_file (str): Restore database from pg_restore file
+        pg_restore_file (Path | str): Restore database from pg_restore file
         recreate_schema (bool): Whether to recreate schema
         schema_name (str): Database schema name. Defaults to "public".
         prepare_fn (Callable[[], None]]): Function to call before Base.metadata.create_all.
@@ -79,17 +79,17 @@ class Database:
 
     def __init__(
         self,
-        engine: Optional[Engine] = None,
-        db_uri: Optional[str] = None,
-        database: Optional[str] = None,
-        host: Optional[str] = None,
-        port: Union[int, str, None] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        engine: Engine | None = None,
+        db_uri: str | None = None,
+        database: str | None = None,
+        host: str | None = None,
+        port: int | str | None = None,
+        username: str | None = None,
+        password: str | None = None,
         dialect: str = "postgresql",
-        driver: Optional[str] = None,
+        driver: str | None = None,
         db_has_tz: bool = False,
-        table_base: Optional[Type[DeclarativeBase]] = None,
+        table_base: type[DeclarativeBase] | None = None,
         reflect: bool = False,
         **kwargs: Any,
     ) -> None:
@@ -230,8 +230,8 @@ class Database:
 
     def batch_populate(
         self,
-        rows: List[Dict],
-        dbtable: Type[DeclarativeBase],
+        rows: list[dict],
+        dbtable: type[DeclarativeBase],
         batch_size: int = 1000,
     ) -> None:
         """Batch populate database table.
@@ -252,11 +252,11 @@ class Database:
 
     @staticmethod
     def create_session(
-        engine: Optional[Engine] = None,
-        db_uri: Optional[str] = None,
-        table_base: Type[DeclarativeBase] = NoTZBase,
+        engine: Engine | None = None,
+        db_uri: str | None = None,
+        table_base: type[DeclarativeBase] = NoTZBase,
         reflect: bool = False,
-    ) -> Tuple[Session, Any]:
+    ) -> tuple[Session, Any]:
         """Creates SQLAlchemy session given SQLAlchemy engine or database uri
         (one of which must be supplied). Tables must inherit from Base in
         hdx.utilities.database unless base is defined. If reflect is True,
@@ -332,7 +332,7 @@ class Database:
             return False
 
     @staticmethod
-    def prepare_view(view_params: Dict) -> TableClause:
+    def prepare_view(view_params: dict) -> TableClause:
         """Prepare SQLAlchemy view from dictionary with keys: name, metadata and
         selectable. Must be run before Base.metadata.create_all.
 
@@ -345,7 +345,7 @@ class Database:
         return view(**view_params)
 
     @classmethod
-    def prepare_views(cls, view_params_list: List[Dict]) -> List[TableClause]:
+    def prepare_views(cls, view_params_list: list[dict]) -> list[TableClause]:
         """Prepare SQLAlchemy views from a list of dictionaries with keys: name,
         metadata and selectable. Must be run before Base.metadata.create_all.
 

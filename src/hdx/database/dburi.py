@@ -1,13 +1,13 @@
 """Connection URI utilities"""
 
-from typing import Any, Dict, Optional, Union
+from typing import Any
 from urllib.parse import urlsplit
 
 
 def get_params_from_connection_uri(
     db_uri: str,
     include_driver: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Gets PostgreSQL database connection parameters from connection URI
 
     Args:
@@ -38,13 +38,13 @@ def get_params_from_connection_uri(
 
 
 def get_connection_uri(
-    database: Optional[str] = None,
-    host: Optional[str] = None,
-    port: Union[int, str, None] = None,
-    username: Optional[str] = None,
-    password: Optional[str] = None,
+    database: str | None = None,
+    host: str | None = None,
+    port: int | str | None = None,
+    username: str | None = None,
+    password: str | None = None,
     dialect: str = "postgresql",
-    driver: Optional[str] = None,
+    driver: str | None = None,
     include_driver: bool = True,
 ) -> str:
     """Gets connection uri from database connection parameters

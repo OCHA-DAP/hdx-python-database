@@ -3,6 +3,7 @@
 from datetime import datetime
 from os import remove
 from os.path import join
+from pathlib import Path
 from shutil import copyfile
 from tempfile import gettempdir
 
@@ -15,7 +16,7 @@ from hdx.database import Database
 class TestReflect:
     def test_get_reflect_session(self):
         dbpath = join(gettempdir(), "test_reflect.db")
-        testdb = join("tests", "fixtures", "test.db")
+        testdb = Path("tests") / "fixtures" / "test.db"
         copyfile(testdb, dbpath)
         with Database(
             database=dbpath,
