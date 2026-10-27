@@ -26,20 +26,20 @@ classifiers = [
 ]
 readme = "README.md"
 dynamic = ["version"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 dependencies = [
     "sqlalchemy>=2",
 ]
 
 [project.optional-dependencies]
-sshtunnel = ["sshtunnel"]
+sshtunnel = ["sshtunnel>=0.5.1", "cryptography>=48.0.1"]
 postgresql = ["psycopg[binary]"]
 docs = ["mkapi"]
 
 [dependency-groups]
 dev = [
-    "sshtunnel",
+    "sshtunnel>=0.5.1",
     "psycopg[binary]",
     "pytest",
     "pytest-cov",
@@ -75,7 +75,7 @@ allow-direct-references = true
 # ----------------------------------------------------------------------------
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 src = ["src"]
 exclude = ["_version.py"]
 

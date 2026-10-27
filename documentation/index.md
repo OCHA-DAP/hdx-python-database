@@ -79,19 +79,25 @@ tunnel (which requires installing `hdx-python-database[sshtunnel]`):
 
     # Get SQLAlchemy session object given database parameters and
     # if needed SSH parameters. If database is PostgreSQL, will poll
-    # till it is up.
+    # till it is up (or until pg_timeout seconds if supplied).
     from hdx.database import Database
     with Database(database="db", host="1.2.3.4", username="user",
                   password="pass", dialect="dialect", driver="driver",
 
                   ssh_host="5.6.7.8", ssh_port=2222, ssh_username="sshuser",
-                  ssh_private_key="path_to_key", db_has_tz=True,
-                  reflect=True, prepare_fn=prepare_views) as database:
+                  ssh_private_key="path_to_key", ssh_host_key="AAAAC3...",
+                  db_has_tz=True, reflect=True, prepare_fn=prepare_views,
+                  pg_timeout=60) as database:
         engine = database.get_engine()
         session = database.get_session()
         reflected_classes = database.get_reflected_classes()
         views = database.get_prepare_results()
         session.query(...)
+
+`ssh_host_key` is the SSH server's public host key, used to verify the server's
+identity. Without it, the tunnel is open to man-in-the-middle attacks and a
+warning is logged. It can be obtained with `ssh-keyscan -t ed25519 5.6.7.8`
+(the base64 field of the output).
 
 `db_has_tz` which defaults to `False` indicates whether database datetime
 columns have timezones. If `db_has_tz` is `True`, use `Base` from

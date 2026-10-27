@@ -20,6 +20,7 @@ class TestSSH:
 
     def test_get_session_ssh(
         self,
+        caplog,
         mock_psycopg,
         mock_SSHTunnelForwarder,
     ):
@@ -60,3 +61,11 @@ class TestSSH:
                 == "postgresql+psycopg://myuser@0.0.0.0:12345/mydatabase"
             )
             assert dbdatabase._base == NoTZBase
+        assert "ssh_host_key not supplied" in caplog.text
+
+        caplog.clear()
+        with Database(
+            ssh_host="mysshhost", ssh_host_key="AAAAkey", **params
+        ) as dbdatabase:
+            assert dbdatabase._base == NoTZBase
+        assert "ssh_host_key not supplied" not in caplog.text

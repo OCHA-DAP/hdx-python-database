@@ -1,6 +1,6 @@
 """Utilities for database datetime columns without timezone"""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, TypeDecorator
 from sqlalchemy.orm import DeclarativeBase, declared_attr
@@ -19,7 +19,7 @@ class ConversionNoTZ(TypeDecorator):
         if value is None:
             return value
         if value.tzinfo:
-            value = value.astimezone(timezone.utc)
+            value = value.astimezone(UTC)
 
         return value.replace(tzinfo=None)
 
@@ -27,9 +27,9 @@ class ConversionNoTZ(TypeDecorator):
         if value is None:
             return value
         if value.tzinfo is None:
-            return value.replace(tzinfo=timezone.utc)
+            return value.replace(tzinfo=UTC)
 
-        return value.astimezone(timezone.utc)
+        return value.astimezone(UTC)
 
 
 class Base(DeclarativeBase):

@@ -82,6 +82,19 @@ class TestDBURI:
         result = get_connection_uri(**TestDBURI.params_sq_driver_none)
         assert result == TestDBURI.connection_uri_sq
 
+    def test_special_characters(self):
+        params = {
+            **TestDBURI.params_pg,
+            "username": "my@user",
+            "password": "p@ss/w:rd#?",
+        }
+        result = get_connection_uri(**params)
+        assert (
+            result
+            == "postgresql+psycopg://my%40user:p%40ss%2Fw%3Ard%23%3F@myserver:1234/mydatabase"
+        )
+        assert get_params_from_connection_uri(result) == params
+
     def test_remove_driver_from_uri(self):
         db_uri_nd = remove_driver_from_uri(TestDBURI.connection_uri_pg)
         assert db_uri_nd == TestDBURI.connection_uri_pg_no_driver

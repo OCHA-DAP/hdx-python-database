@@ -1,6 +1,6 @@
 """Database Utility Tests"""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from os import remove
 from os.path import exists, join
 from tempfile import gettempdir
@@ -32,7 +32,7 @@ class TestDatabase:
             dbsession = dbdatabase.get_session()
             assert str(dbsession.bind.engine.url) == f"sqlite:///{dbpath}"
             assert dbdatabase._base == NoTZBase
-            now = datetime(2022, 10, 20, 22, 35, 55, tzinfo=timezone.utc)
+            now = datetime(2022, 10, 20, 22, 35, 55, tzinfo=UTC)
             input_dbtestdate = DBTestDate(test_date=now)
             dbsession.add(input_dbtestdate)
             dbsession.commit()
@@ -42,7 +42,7 @@ class TestDatabase:
             dbtestdate = dbsession.execute(select(date_view)).scalar_one()
             assert dbtestdate == now
 
-            now = datetime(2023, 10, 20, 22, 35, 55, tzinfo=timezone.utc)
+            now = datetime(2023, 10, 20, 22, 35, 55, tzinfo=UTC)
             rows = [{"test_date": now}]
             dbdatabase.batch_populate(rows, DBTestDate)
             dbtestdate = dbsession.execute(select(DBTestDate)).all()[1][0].test_date

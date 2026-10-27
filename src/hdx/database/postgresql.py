@@ -26,17 +26,19 @@ class PostgresError(Exception):
     pass
 
 
-def wait_for_postgresql(db_uri: str) -> None:
+def wait_for_postgresql(db_uri: str, timeout: int | None = None) -> None:
     """Waits for PostgreSQL database to be up
 
     Args:
         db_uri (str): Connection URI
+        timeout (Optional[int]): Seconds to wait. Defaults to None (wait forever).
 
     Returns:
         None
     """
     connecting_string = "Checking for PostgreSQL..."
     db_uri_nd = remove_driver_from_uri(db_uri)
+    start = time.monotonic()
     while True:
         try:
             logger.info(connecting_string)
@@ -45,6 +47,8 @@ def wait_for_postgresql(db_uri: str) -> None:
             logger.info("PostgreSQL is running!")
             break
         except psycopg.OperationalError:
+            if timeout is not None and time.monotonic() - start > timeout:
+                raise PostgresError(f"PostgreSQL not available after {timeout}s")
             time.sleep(1)
 
 
@@ -59,7 +63,7 @@ def restore_from_pgfile(db_uri: str, pg_restore_file: Path | str) -> str:
     Returns:
         str: Output from the pg_restore command
     """
-    pg_restore_file = Path(pg_restore_file)
+    pg_restore_file = Path(pg_restore_file).absolute()
     db_params = get_params_from_connection_uri(db_uri)
     if pg_restore_file.suffix == ".xz":
         decompress = subprocess.Popen(
