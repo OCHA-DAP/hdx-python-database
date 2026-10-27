@@ -75,7 +75,7 @@ allow-direct-references = true
 # ----------------------------------------------------------------------------
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 src = ["src"]
 exclude = ["_version.py"]
 
