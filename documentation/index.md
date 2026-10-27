@@ -22,6 +22,8 @@ installed with extra `postgresql`:
     pip install hdx-python-database[postgresql]
 
 ## Breaking changes
+From 1.4.0, Python 3.11 or later is required
+
 From 1.3.1, Database class refactored. With returns Database not Session
 object and can accept a prepare function called before
 Base.metadata.create_all. get_session can be used to obtain the session.
