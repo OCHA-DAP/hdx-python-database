@@ -65,6 +65,7 @@ class Database:
         reflect (bool): Whether to reflect existing tables. Defaults to False.
         **kwargs: See below
         pg_restore_file (Path | str): Restore database from pg_restore file
+        pg_timeout (int): Seconds to wait for PostgreSQL. Defaults to None (wait forever).
         recreate_schema (bool): Whether to recreate schema
         schema_name (str): Database schema name. Defaults to "public".
         prepare_fn (Callable[[], None]]): Function to call before Base.metadata.create_all.
@@ -73,6 +74,7 @@ class Database:
         ssh_username (str): SSH username
         ssh_password (str): SSH password
         ssh_private_key: Location of SSH private key (instead of ssh_password)
+        ssh_host_key (str): SSH server host key to verify against. Strongly recommended.
         For more advanced usage, see SSHTunnelForwarder documentation.
 
     """
@@ -98,10 +100,12 @@ class Database:
         schema_name = None
         if len(kwargs) == 0:
             pg_restore_file = None
+            pg_timeout = None
             recreate_schema = False
             prepare_fn = do_nothing_fn
         else:
             pg_restore_file = kwargs.pop("pg_restore_file", None)
+            pg_timeout = kwargs.pop("pg_timeout", None)
             recreate_schema = kwargs.pop("recreate_schema", False)
             schema_name = kwargs.pop("schema", "public")
             prepare_fn = kwargs.pop("prepare_fn", do_nothing_fn)
@@ -116,6 +120,10 @@ class Database:
                 raise
             ssh_host = kwargs["ssh_host"]
             del kwargs["ssh_host"]
+            if "ssh_host_key" not in kwargs:
+                logger.warning(
+                    "ssh_host_key not supplied: SSH server identity will not be verified."
+                )
             ssh_port = kwargs.get("ssh_port")
             if ssh_port is not None:
                 ssh_port = int(ssh_port)
@@ -147,7 +155,7 @@ class Database:
                     "No engine, database uri or connection parameters provided!"
                 )
         if not engine and dialect == "postgresql":
-            wait_for_postgresql(db_uri)
+            wait_for_postgresql(db_uri, pg_timeout)
         if pg_restore_file and db_uri:
             restore_from_pgfile(db_uri, pg_restore_file)
         if not table_base:

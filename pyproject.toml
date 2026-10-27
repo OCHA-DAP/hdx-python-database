@@ -26,14 +26,14 @@ classifiers = [
 ]
 readme = "README.md"
 dynamic = ["version"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 dependencies = [
     "sqlalchemy>=2",
 ]
 
 [project.optional-dependencies]
-sshtunnel = ["sshtunnel"]
+sshtunnel = ["sshtunnel", "cryptography>=48.0.1"]
 postgresql = ["psycopg[binary]"]
 docs = ["mkapi"]
 

@@ -1,7 +1,7 @@
 """Connection URI utilities"""
 
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import quote_plus, unquote, urlsplit
 
 
 def get_params_from_connection_uri(
@@ -28,8 +28,8 @@ def get_params_from_connection_uri(
         "database": result.path[1:],
         "host": result.hostname,
         "port": result.port,
-        "username": result.username,
-        "password": result.password,
+        "username": unquote(result.username) if result.username else None,
+        "password": unquote(result.password) if result.password else None,
         "dialect": dialect,
     }
     if include_driver:
@@ -72,9 +72,9 @@ def get_connection_uri(
             strings.append(f"+{driver}")
     strings.append("://")
     if username:
-        strings.append(username)
+        strings.append(quote_plus(username))
         if password:
-            strings.append(f":{password}@")
+            strings.append(f":{quote_plus(password)}@")
         else:
             strings.append("@")
     if host:
