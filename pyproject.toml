@@ -33,13 +33,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-sshtunnel = ["sshtunnel", "cryptography>=48.0.1"]
+sshtunnel = ["sshtunnel>=0.5.1", "cryptography>=48.0.1"]
 postgresql = ["psycopg[binary]"]
 docs = ["mkapi"]
 
 [dependency-groups]
 dev = [
-    "sshtunnel",
+    "sshtunnel>=0.5.1",
     "psycopg[binary]",
     "pytest",
     "pytest-cov",

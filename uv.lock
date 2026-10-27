@@ -645,7 +645,7 @@ requires-dist = [
     { name = "mkapi", marker = "extra == 'docs'" },
     { name = "psycopg", extras = ["binary"], marker = "extra == 'postgresql'" },
     { name = "sqlalchemy", specifier = ">=2" },
-    { name = "sshtunnel", marker = "extra == 'sshtunnel'" },
+    { name = "sshtunnel", marker = "extra == 'sshtunnel'", specifier = ">=0.5.1" },
 ]
 provides-extras = ["docs", "postgresql", "sshtunnel"]
 
@@ -656,7 +656,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff", specifier = "==0.14.13" },
-    { name = "sshtunnel" },
+    { name = "sshtunnel", specifier = ">=0.5.1" },
 ]
 
 [[package]]
