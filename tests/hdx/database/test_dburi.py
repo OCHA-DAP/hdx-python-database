@@ -1,5 +1,7 @@
 """Database Connection Tests"""
 
+from typing import ClassVar
+
 from hdx.database.dburi import (
     get_connection_uri,
     get_params_from_connection_uri,
@@ -8,7 +10,7 @@ from hdx.database.postgresql import remove_driver_from_uri
 
 
 class TestDBURI:
-    params_pg = {
+    params_pg: ClassVar[dict] = {
         "database": "mydatabase",
         "host": "myserver",
         "port": 1234,
@@ -18,7 +20,7 @@ class TestDBURI:
         "driver": "psycopg",
     }
     connection_uri_pg = "postgresql+psycopg://myuser:mypass@myserver:1234/mydatabase"
-    params_pg_no_driver = {
+    params_pg_no_driver: ClassVar[dict] = {
         "database": "mydatabase",
         "host": "myserver",
         "port": 1234,
@@ -26,7 +28,7 @@ class TestDBURI:
         "password": "mypass",
         "dialect": "postgresql",
     }
-    params_pg_driver_none = {
+    params_pg_driver_none: ClassVar[dict] = {
         "database": "mydatabase",
         "host": "myserver",
         "port": 1234,
@@ -36,7 +38,7 @@ class TestDBURI:
         "driver": None,
     }
     connection_uri_pg_no_driver = "postgresql://myuser:mypass@myserver:1234/mydatabase"
-    params_sq_no_driver = {
+    params_sq_no_driver: ClassVar[dict] = {
         "database": "mydatabase",
         "host": "myserver",
         "port": 1234,
@@ -44,7 +46,7 @@ class TestDBURI:
         "password": "mypass",
         "dialect": "sqlite",
     }
-    params_sq_driver_none = {
+    params_sq_driver_none: ClassVar[dict] = {
         "database": "mydatabase",
         "host": "myserver",
         "port": 1234,

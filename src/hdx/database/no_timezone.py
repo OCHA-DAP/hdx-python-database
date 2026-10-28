@@ -1,6 +1,7 @@
 """Utilities for database datetime columns without timezone"""
 
 from datetime import UTC, datetime
+from typing import ClassVar
 
 from sqlalchemy import DateTime, TypeDecorator
 from sqlalchemy.orm import DeclarativeBase, declared_attr
@@ -33,7 +34,7 @@ class ConversionNoTZ(TypeDecorator):
 
 
 class Base(DeclarativeBase):
-    type_annotation_map = {
+    type_annotation_map: ClassVar[dict] = {
         datetime: ConversionNoTZ,
     }
 

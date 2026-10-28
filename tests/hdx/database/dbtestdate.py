@@ -21,7 +21,7 @@ class DBTestDate(Base):
         Returns:
             str: String representation of DBTestDate row
         """
-        return f"<Test date={str(self.test_date)}>"
+        return f"<Test date={self.test_date!s}>"
 
 
 date_view_params = {
