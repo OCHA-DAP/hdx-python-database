@@ -1,6 +1,7 @@
 """Database Utility Tests"""
 
 from copy import deepcopy
+from typing import ClassVar
 
 from hdx.database import Database
 from hdx.database.no_timezone import Base as NoTZBase
@@ -8,7 +9,7 @@ from hdx.database.with_timezone import Base as TZBase
 
 
 class TestSSH:
-    params_pg = {
+    params_pg: ClassVar[dict] = {
         "database": "mydatabase",
         "host": "myserver",
         "port": 1234,

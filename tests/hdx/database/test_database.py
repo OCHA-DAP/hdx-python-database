@@ -54,6 +54,5 @@ class TestDatabase:
         with pytest.raises(DatabaseError):
             Database.create_session()
 
-        with pytest.raises(DatabaseError):
-            with Database():
-                pass
+        with pytest.raises(DatabaseError), Database():
+            pass

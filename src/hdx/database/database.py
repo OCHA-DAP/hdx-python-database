@@ -1,7 +1,8 @@
 """Database utilities"""
 
 import logging
-from typing import Any
+from types import TracebackType
+from typing import Any, Self
 
 from sqlalchemy import Engine, TableClause, create_engine, insert
 from sqlalchemy.exc import SQLAlchemyError
@@ -190,10 +191,15 @@ class Database:
         if self._server is not None:
             self._server.stop()
 
-    def __enter__(self) -> "Database":
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         self.cleanup()
 
     def drop_all(self) -> None:

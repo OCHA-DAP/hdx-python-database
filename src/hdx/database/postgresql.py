@@ -98,6 +98,7 @@ def restore_from_pgfile(db_uri: str, pg_restore_file: Path | str) -> str:
         capture_output=True,
         encoding="utf-8",
         stdin=decompress,
+        check=False,
     )
     try:
         process.check_returncode()
