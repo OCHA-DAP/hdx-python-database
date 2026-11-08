@@ -1,12 +1,13 @@
 """Database Utility Tests"""
 
+import sqlite3
 from datetime import UTC, datetime
 from os import remove
 from os.path import exists, join
 from tempfile import gettempdir
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from .dbtestdate import DBTestDate, date_view_params
 from hdx.database import Database, DatabaseError
@@ -56,3 +57,23 @@ class TestDatabase:
 
         with pytest.raises(DatabaseError), Database():
             pass
+
+    def test_sqlite_uri(self):
+        dbpath = join(gettempdir(), "test_sqlite_uri.db")
+        if exists(dbpath):
+            remove(dbpath)
+        connection = sqlite3.connect(dbpath)
+        connection.execute("CREATE TABLE old_table (id INTEGER)")
+        connection.execute("CREATE VIEW old_view AS SELECT id FROM old_table")
+        connection.commit()
+        connection.close()
+
+        # No dialect: inferred from db_uri, so no wait for PostgreSQL
+        with Database(db_uri=f"sqlite:///{dbpath}", recreate_schema=True) as dbdatabase:
+            dbsession = dbdatabase.get_session()
+            names = dbsession.execute(
+                text("SELECT name FROM sqlite_master WHERE type IN ('table', 'view')")
+            ).scalars()
+            assert "old_table" not in names
+            assert dbsession.execute(text("PRAGMA foreign_keys")).scalar() == 1
+        remove(dbpath)

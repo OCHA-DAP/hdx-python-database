@@ -4,7 +4,15 @@ import logging
 from types import TracebackType
 from typing import Any, Self
 
-from sqlalchemy import Engine, TableClause, create_engine, insert
+from sqlalchemy import (
+    Connection,
+    Engine,
+    TableClause,
+    create_engine,
+    event,
+    insert,
+)
+from sqlalchemy.engine import make_url
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import DeclarativeBase, Session
@@ -26,6 +34,34 @@ class DatabaseError(Exception):
 
 def do_nothing_fn():
     return None
+
+
+def _enable_sqlite_foreign_keys(dbapi_connection: Any, _: Any) -> None:
+    dbapi_connection.execute("PRAGMA foreign_keys=ON")
+
+
+def _create_engine(db_uri: str) -> Engine:
+    """Create engine. SQLite ignores foreign keys unless each connection
+    enables them."""
+    engine = create_engine(db_uri, poolclass=NullPool, echo=False)
+    if engine.dialect.name == "sqlite":
+        event.listen(engine, "connect", _enable_sqlite_foreign_keys)
+    return engine
+
+
+def _drop_sqlite_objects(connection: Connection) -> None:
+    """Drop all views and tables. SQLite has no schemas to drop."""
+    foreign_keys = connection.exec_driver_sql("PRAGMA foreign_keys").scalar()
+    connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+    quote = connection.dialect.identifier_preparer.quote
+    rows = connection.exec_driver_sql(
+        "SELECT type, name FROM sqlite_master "
+        "WHERE type IN ('view', 'table') AND name NOT LIKE 'sqlite_%' "
+        "ORDER BY type = 'table'"
+    ).all()
+    for object_type, name in rows:
+        connection.exec_driver_sql(f"DROP {object_type.upper()} {quote(name)}")
+    connection.exec_driver_sql(f"PRAGMA foreign_keys={foreign_keys}")
 
 
 class Database:
@@ -59,7 +95,7 @@ class Database:
         port (Union[int, str, None]): Database port
         username (Optional[str]): Username to log into database
         password (Optional[str]): Password to log into database
-        dialect (str): Database dialect. Defaults to "postgresql".
+        dialect (str): Database dialect if no engine or db_uri. Defaults to "postgresql".
         driver (Optional[str]): Database driver. Defaults to None (psycopg if postgresql or None)
         db_has_tz (bool): True if db datetime columns have timezone. Defaults to False.
         table_base (Optional[Type[DeclarativeBase]]): Override table base. Defaults to None.
@@ -155,7 +191,7 @@ class Database:
                 raise DatabaseError(
                     "No engine, database uri or connection parameters provided!"
                 )
-        if not engine and dialect == "postgresql":
+        if not engine and make_url(db_uri).get_backend_name() == "postgresql":
             wait_for_postgresql(db_uri, pg_timeout)
         if pg_restore_file and db_uri:
             restore_from_pgfile(db_uri, pg_restore_file)
@@ -165,7 +201,7 @@ class Database:
             else:
                 table_base = NoTZBase
         if not engine:
-            engine = create_engine(db_uri, poolclass=NullPool, echo=False)
+            engine = _create_engine(db_uri)
         self._engine: Engine = engine
         if recreate_schema:
             self.recreate_schema(engine, schema_name)
@@ -290,7 +326,7 @@ class Database:
         if not engine:
             if db_uri is None:
                 raise DatabaseError("No engine or database uri provided!")
-            engine = create_engine(db_uri, poolclass=NullPool, echo=False)
+            engine = _create_engine(db_uri)
         if reflect:
             Base = automap_base(declarative_base=table_base)
             Base.prepare(autoload_with=engine, reflection_options={"views": True})
@@ -302,6 +338,7 @@ class Database:
     @staticmethod
     def drop_schema(engine: Engine, schema_name: str = "public") -> bool:
         """Wipe schema in database using SQLAlchemy.
+        For SQLite, drop all tables and views instead.
 
         Args:
             engine (Engine): SQLAlchemy engine to use.
@@ -313,9 +350,12 @@ class Database:
         # Wipe and create an empty schema
         try:
             with engine.connect() as connection:
-                connection.execute(
-                    DropSchema(schema_name, cascade=True, if_exists=True)
-                )
+                if connection.dialect.name == "sqlite":
+                    _drop_sqlite_objects(connection)
+                else:
+                    connection.execute(
+                        DropSchema(schema_name, cascade=True, if_exists=True)
+                    )
                 connection.commit()
                 return True
         except SQLAlchemyError:
@@ -324,6 +364,7 @@ class Database:
     @staticmethod
     def recreate_schema(engine: Engine, schema_name: str = "public") -> bool:
         """Wipe and create empty schema in database using SQLAlchemy.
+        For SQLite, drop all tables and views instead.
 
         Args:
             engine (Engine): SQLAlchemy engine to use.
@@ -335,6 +376,10 @@ class Database:
         # Wipe and create an empty schema
         try:
             with engine.connect() as connection:
+                if connection.dialect.name == "sqlite":
+                    _drop_sqlite_objects(connection)
+                    connection.commit()
+                    return True
                 connection.execute(
                     DropSchema(schema_name, cascade=True, if_exists=True)
                 )
