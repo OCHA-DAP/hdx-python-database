@@ -22,6 +22,10 @@ installed with extra `postgresql`:
     pip install hdx-python-database[postgresql]
 
 ## Breaking changes
+From 1.5.0, SQLAlchemy 2.1.8 or later is required. With a SQLite URI,
+the dialect is inferred, `recreate_schema` drops all tables and views and
+foreign keys are enforced.
+
 From 1.4.0, Python 3.11 or later is required
 
 From 1.3.1, Database class refactored. With returns Database not Session
@@ -61,7 +65,8 @@ Versions from 1.0.6 no longer support Python 2.7.
 ## Database
 
 A fresh schema can be created using the function `recreate_schema`. Any
-existing schema with that name will be dropped eg.
+existing schema with that name will be dropped. For SQLite, which has no
+schemas, all tables and views are dropped instead eg.
 
     from hdx.database import Database
     Database.recreate_schema(engine, db_uri)

@@ -3,6 +3,7 @@ from collections import namedtuple
 
 import psycopg
 import pytest
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import SQLAlchemyError
 from sshtunnel import SSHTunnelForwarder
 
@@ -74,6 +75,8 @@ def mock_SSHTunnelForwarder(monkeypatch):
 @pytest.fixture(scope="function")
 def mock_engine():
     class SQAConnection:
+        dialect = postgresql.dialect()
+
         def __enter__(self):
             return self
 

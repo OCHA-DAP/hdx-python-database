@@ -29,21 +29,21 @@ dynamic = ["version"]
 requires-python = ">=3.11"
 
 dependencies = [
-    "sqlalchemy>=2",
+    "sqlalchemy>=2.1.8",
 ]
 
 [project.optional-dependencies]
-sshtunnel = ["sshtunnel>=0.5.1", "cryptography>=48.0.1"]
-postgresql = ["psycopg[binary]"]
-docs = ["mkapi"]
+sshtunnel = ["sshtunnel>=0.5.1", "cryptography>=50.0.2"]
+postgresql = ["psycopg[binary]>=3.3.8"]
+docs = ["mkapi>=4.5.0"]
 
 [dependency-groups]
 dev = [
     "sshtunnel>=0.5.1",
-    "psycopg[binary]",
-    "pytest",
-    "pytest-cov",
-    "pre-commit",
+    "psycopg[binary]>=3.3.8",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "pre-commit>=4.7.0",
     "ruff==0.17.3",
 ]
 
